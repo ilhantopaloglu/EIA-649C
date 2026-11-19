@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EIA-649C Temelinde Konfigürasyon Yönetimi</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; }
+body { font-family: Arial, sans-serif; background: #e8edf3; color: #163653; }
+header { padding: 13px; background: #123858; color: white; text-align: center; font-size: clamp(14px,2vw,20px); font-weight: bold; }
+.container { width: min(98%,1500px); margin: 12px auto; }
+.presentation { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: white; box-shadow: 0 3px 14px #0002; }
+.slide-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: fill; }
+.slide-fallback { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: none; }
+.video-frame { position: absolute; top: 16.4%; left: 74.4%; height: 72.5%; width: auto; aspect-ratio: 9/16; border: 0; background: #111; z-index: 2; }
+.missing { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 15px; background: #f5f8fc; color: #163653; font-size: clamp(12px,1.4vw,18px); }
+#videoMissing { inset: auto; top: 16.4%; left: 74.4%; height: 72.5%; width: auto; aspect-ratio: 9/16; z-index: 3; background: #e8edf3; }
+.controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; padding: 14px 5px; }
+button { border: 0; border-radius: 6px; background: #123858; color: white; padding: 11px 16px; cursor: pointer; font-size: 14px; }
+button:hover:not(:disabled) { background: #20618d; }
+button:disabled { opacity: 0.4; cursor: default; }
+#counter { font-weight: bold; min-width: 105px; text-align: center; }
+.help { max-width: 850px; margin: 15px auto; padding: 12px 18px; background: #f5f8fc; border: 1px solid #ccd8e3; border-radius: 8px; font-size: 13px; line-height: 1.7; }
+.help summary { font-weight: bold; cursor: pointer; }
+.help p { margin: 10px 0; }
+.warning { font-size: 11px; color: #64748b; }
+.notice { max-width: 850px; margin: 20px auto 30px; padding: 15px; text-align: center; font-size: 12px; line-height: 1.7; color: #64748b; border-top: 1px solid #ccd8e3; }
+.notice p { margin: 7px 0; }
+.notice strong { color: #163653; font-size: 13px; }
+@media (max-width: 767px) and (orientation: portrait) {
+ .container { width: 100%; padding: 8px; margin: 0 auto; }
+ .presentation { display: flex; flex-direction: column; gap: 12px; aspect-ratio: auto; overflow: visible; background: transparent; box-shadow: none; }
+ .slide-image, .slide-fallback, #imageMissing { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 16/9; background: white; }
+ .video-frame, #videoMissing { position: relative; left: auto; top: auto; width: min(72%,320px); height: auto; aspect-ratio: 9/16; margin: 0 auto; border-radius: 8px; }
+}
+@media (max-height: 600px) and (orientation: landscape) {
+  { padding: 6px; font-size: 13px; }
+ .container { width: 100%; padding: 6px; margin: 0 auto; }
+ .presentation { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,1fr); gap: 6px; aspect-ratio: auto; height: min(72dvh,520px); box-shadow: none; background: transparent; }
+ .slide-image, .slide-fallback, #imageMissing { position: relative; inset: auto; width: 100%; height: 100%; min-width: 0; object-fit: contain; }
+ .video-frame, #videoMissing { position: relative; left: auto; top: auto; width: 100%; height: 100%; min-width: 0; aspect-ratio: auto; }
+}
+.presentation:fullscreen { width: 100vw; height: 100dvh; background: #111; }
+</style>
+</head>
+<body>
+<header>EIA-649C Temelinde Konfigürasyon Yönetimi</header>
+<main class="container">
+  <div class="presentation" id="presentation">
+    <img id="slideImage" class="slide-image" alt="Eğitim slaytı">
+    <iframe id="slideFallback" class="slide-fallback" title="Google Drive slayt önizlemesi"></iframe>
+    <div id="imageMissing" class="missing"></div>
+    <iframe id="videoFrame" class="video-frame" title="Anlatım videosu" allow="autoplay; fullscreen; encrypted-media" allowfullscreen referrerpolicy="no-referrer"></iframe>
+    <div id="videoMissing" class="missing"></div>
+  </div>
+  <nav class="controls">
+    <button id="prev" onclick="changeSlide(-1)">◀ Önceki</button>
+    <span id="counter">Sayfa 1 / 93</span>
+    <button id="next" onclick="changeSlide(1)">Sonraki ▶</button>
+    <button onclick="toggleFullscreen()">⛶ Tam Ekran</button>
+  </nav>
+  <details class="help">
+    <summary>Mobil Cihazlarda Görüntüleme Sorunları</summary>
+    <p>Google hesabınıza giriş yaptığınızdan emin olunuz.</p>
+    <p>Sunum sayfaları veya videolar görüntülenmiyorsa öncelikle tarayıcıyı tamamen kapatıp yeniden açmayı deneyiniz. </p>
+    <p>Üçüncü taraf çerez kısıtlamaları, Google Drive üzerinden paylaşılan içeriklerin görüntülenmesini etkileyebilir. Sorun devam ederse aşağıdaki ayarları kontrol ediniz.</p>
+    <p><strong>iOS ayarları (Safari):</strong></p>
+    <p>1. Ayarlar → Uygulamalar → Safari bölümünü açınız.</p>
+    <p>2. Siteler Arası Takibi Engelle (Prevent Cross-Site Tracking) seçeneğini geçici olarak kapatınız.</p>
+    <p>3. Tüm Çerezleri Engelle (Block All Cookies) seçeneği varsa kapalı olduğundan emin olunuz. Bu seçenek bazı iOS sürümlerinde İleri Düzey (Advanced) bölümünde bulunabilir.</p>
+    <p>4. Safari'yi tamamen kapatıp sunum bağlantısını yeniden açınız.</p>
+    <p><strong>Andoid ayarları (Google Chrome):</strong></p>
+    <p>1. Chrome uygulamasını açınız.</p>
+    <p>2. Sağ üstteki üç nokta (⋮) → Ayarlar bölümüne giriniz.</p>
+    <p>3. Site ayarları → Üçüncü taraf çerezleri bölümünü açınız.</p>
+    <p>4. Mümkünse yalnızca ilgili site için istisna tanımlayınız. Bu seçenek bulunmuyorsa üçüncü taraf çerezlerine geçici olarak izin veriniz.</p>
+    <p>5. Chrome'u kapatıp sunum bağlantısını yeniden açınız.</p>
+    <p class="warning">Bu değişiklikler yalnızca görüntüleme sorunu yaşanması durumunda uygulanmalıdır. Sunum tamamlandıktan sonra gizlilik ve güvenlik açısından geçici olarak değiştirilen ayarların eski durumuna getirilmesi önerilir.</p>
+  </details>
+  <footer class="notice">
+    <p><strong>© 2026 İlhan Topaloğlu. Tüm hakları saklıdır.</strong></p>
+    <p>Eğitim içeriği İlhan Topaloğlu tarafından hazırlanmıştır. Katılımcılara, kendilerine tanımlanan erişim tarihinden itibaren bir hafta süreyle yalnızca kişisel eğitim amacıyla görüntüleme hakkı verilmiştir. İçeriğin izinsiz indirilmesi, çoğaltılması, paylaşılması veya üçüncü kişilere aktarılması yasaktır.</p>
+    <p>Bilgi için:
+     <a href="mailto:ilhant@gmail.com"
+     style="color:#163653; font-weight:bold;">
+     ilhant@gmail.com
+     </a>
+</p>
+  </footer>
+</main>
+<script>
+/* YALNIZCA BU LİSTEDEKİ TIRNAK İÇİ BAĞLANTILARI DEĞİŞTİRİN.
+   Her sayfa için Google Drive'dan alınan paylaşım bağlantısını yapıştırın. */
+const lessons = [
+    { number: 1, png: "https://drive.google.com/file/d/1B1mr2oWFFCL2vzemLzZwfOCTzba_f-mV/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1vldE0eXovbLoKbDxe_-2EwX9r6PaeLc-/view?usp=drive_link" },
+    { number: 2, png: "2 nolu PNG dosyasının linki", mp4: "2 nolu MP4 dosyasının linki" },
+    { number: 3, png: "3 nolu PNG dosyasının linki", mp4: "3 nolu MP4 dosyasının linki" },
+    { number: 4, png: "4 nolu PNG dosyasının linki", mp4: "4 nolu MP4 dosyasının linki" },
+    { number: 5, png: "5 nolu PNG dosyasının linki", mp4: "5 nolu MP4 dosyasının linki" },
+    { number: 6, png: "6 nolu PNG dosyasının linki", mp4: "6 nolu MP4 dosyasının linki" },
+    { number: 7, png: "7 nolu PNG dosyasının linki", mp4: "7 nolu MP4 dosyasının linki" },
+    { number: 8, png: "8 nolu PNG dosyasının linki", mp4: "8 nolu MP4 dosyasının linki" },
+    { number: 9, png: "9 nolu PNG dosyasının linki", mp4: "9 nolu MP4 dosyasının linki" },
+    { number: 10, png: "10 nolu PNG dosyasının linki", mp4: "10 nolu MP4 dosyasının linki" },
+    { number: 11, png: "11 nolu PNG dosyasının linki", mp4: "11 nolu MP4 dosyasının linki" },
+    { number: 12, png: "12 nolu PNG dosyasının linki", mp4: "12 nolu MP4 dosyasının linki" },
+    { number: 13, png: "13 nolu PNG dosyasının linki", mp4: "13 nolu MP4 dosyasının linki" },
+    { number: 14, png: "14 nolu PNG dosyasının linki", mp4: "14 nolu MP4 dosyasının linki" },
+    { number: 15, png: "15 nolu PNG dosyasının linki", mp4: "15 nolu MP4 dosyasının linki" },
+    { number: 16, png: "16 nolu PNG dosyasının linki", mp4: "16 nolu MP4 dosyasının linki" },
+    { number: 17, png: "17 nolu PNG dosyasının linki", mp4: "17 nolu MP4 dosyasının linki" },
+    { number: 18, png: "18 nolu PNG dosyasının linki", mp4: "18 nolu MP4 dosyasının linki" },
+    { number: 19, png: "19 nolu PNG dosyasının linki", mp4: "19 nolu MP4 dosyasının linki" },
+    { number: 20, png: "20 nolu PNG dosyasının linki", mp4: "20 nolu MP4 dosyasının linki" },
+    { number: 21, png: "21 nolu PNG dosyasının linki", mp4: "21 nolu MP4 dosyasının linki" },
+    { number: 22, png: "22 nolu PNG dosyasının linki", mp4: "22 nolu MP4 dosyasının linki" },
+    { number: 23, png: "23 nolu PNG dosyasının linki", mp4: "23 nolu MP4 dosyasının linki" },
+    { number: 24, png: "24 nolu PNG dosyasının linki", mp4: "24 nolu MP4 dosyasının linki" },
+    { number: 25, png: "25 nolu PNG dosyasının linki", mp4: "25 nolu MP4 dosyasının linki" },
+    { number: 26, png: "26 nolu PNG dosyasının linki", mp4: "26 nolu MP4 dosyasının linki" },
+    { number: 27, png: "27 nolu PNG dosyasının linki", mp4: "27 nolu MP4 dosyasının linki" },
+    { number: 28, png: "28 nolu PNG dosyasının linki", mp4: "28 nolu MP4 dosyasının linki" },
+    { number: 29, png: "29 nolu PNG dosyasının linki", mp4: "29 nolu MP4 dosyasının linki" },
+    { number: 30, png: "30 nolu PNG dosyasının linki", mp4: "30 nolu MP4 dosyasının linki" },
+    { number: 31, png: "31 nolu PNG dosyasının linki", mp4: "31 nolu MP4 dosyasının linki" },
+    { number: 32, png: "32 nolu PNG dosyasının linki", mp4: "32 nolu MP4 dosyasının linki" },
+    { number: 33, png: "33 nolu PNG dosyasının linki", mp4: "33 nolu MP4 dosyasının linki" },
+    { number: 34, png: "34 nolu PNG dosyasının linki", mp4: "34 nolu MP4 dosyasının linki" },
+    { number: 35, png: "35 nolu PNG dosyasının linki", mp4: "35 nolu MP4 dosyasının linki" },
+    { number: 36, png: "36 nolu PNG dosyasının linki", mp4: "36 nolu MP4 dosyasının linki" },
+    { number: 37, png: "37 nolu PNG dosyasının linki", mp4: "37 nolu MP4 dosyasının linki" },
+    { number: 38, png: "38 nolu PNG dosyasının linki", mp4: "38 nolu MP4 dosyasının linki" },
+    { number: 39, png: "39 nolu PNG dosyasının linki", mp4: "39 nolu MP4 dosyasının linki" },
+    { number: 40, png: "40 nolu PNG dosyasının linki", mp4: "40 nolu MP4 dosyasının linki" },
+    { number: 41, png: "41 nolu PNG dosyasının linki", mp4: "41 nolu MP4 dosyasının linki" },
+    { number: 42, png: "42 nolu PNG dosyasının linki", mp4: "42 nolu MP4 dosyasının linki" },
+    { number: 43, png: "43 nolu PNG dosyasının linki", mp4: "43 nolu MP4 dosyasının linki" },
+    { number: 44, png: "44 nolu PNG dosyasının linki", mp4: "44 nolu MP4 dosyasının linki" },
+    { number: 45, png: "45 nolu PNG dosyasının linki", mp4: "45 nolu MP4 dosyasının linki" },
+    { number: 46, png: "46 nolu PNG dosyasının linki", mp4: "46 nolu MP4 dosyasının linki" },
+    { number: 47, png: "47 nolu PNG dosyasının linki", mp4: "47 nolu MP4 dosyasının linki" },
+    { number: 48, png: "48 nolu PNG dosyasının linki", mp4: "48 nolu MP4 dosyasının linki" },
+    { number: 49, png: "49 nolu PNG dosyasının linki", mp4: "49 nolu MP4 dosyasının linki" },
+    { number: 50, png: "50 nolu PNG dosyasının linki", mp4: "50 nolu MP4 dosyasının linki" },
+    { number: 51, png: "51 nolu PNG dosyasının linki", mp4: "51 nolu MP4 dosyasının linki" },
+    { number: 52, png: "52 nolu PNG dosyasının linki", mp4: "52 nolu MP4 dosyasının linki" },
+    { number: 53, png: "53 nolu PNG dosyasının linki", mp4: "53 nolu MP4 dosyasının linki" },
+    { number: 54, png: "54 nolu PNG dosyasının linki", mp4: "54 nolu MP4 dosyasının linki" },
+    { number: 55, png: "55 nolu PNG dosyasının linki", mp4: "55 nolu MP4 dosyasının linki" },
+    { number: 56, png: "56 nolu PNG dosyasının linki", mp4: "56 nolu MP4 dosyasının linki" },
+    { number: 57, png: "57 nolu PNG dosyasının linki", mp4: "57 nolu MP4 dosyasının linki" },
+    { number: 58, png: "58 nolu PNG dosyasının linki", mp4: "58 nolu MP4 dosyasının linki" },
+    { number: 59, png: "59 nolu PNG dosyasının linki", mp4: "59 nolu MP4 dosyasının linki" },
+    { number: 60, png: "60 nolu PNG dosyasının linki", mp4: "60 nolu MP4 dosyasının linki" },
+    { number: 61, png: "61 nolu PNG dosyasının linki", mp4: "61 nolu MP4 dosyasının linki" },
+    { number: 62, png: "62 nolu PNG dosyasının linki", mp4: "62 nolu MP4 dosyasının linki" },
+    { number: 63, png: "63 nolu PNG dosyasının linki", mp4: "63 nolu MP4 dosyasının linki" },
+    { number: 64, png: "64 nolu PNG dosyasının linki", mp4: "64 nolu MP4 dosyasının linki" },
+    { number: 65, png: "65 nolu PNG dosyasının linki", mp4: "65 nolu MP4 dosyasının linki" },
+    { number: 66, png: "66 nolu PNG dosyasının linki", mp4: "66 nolu MP4 dosyasının linki" },
+    { number: 67, png: "67 nolu PNG dosyasının linki", mp4: "67 nolu MP4 dosyasının linki" },
+    { number: 68, png: "68 nolu PNG dosyasının linki", mp4: "68 nolu MP4 dosyasının linki" },
+    { number: 69, png: "69 nolu PNG dosyasının linki", mp4: "69 nolu MP4 dosyasının linki" },
+    { number: 70, png: "70 nolu PNG dosyasının linki", mp4: "70 nolu MP4 dosyasının linki" },
+    { number: 71, png: "71 nolu PNG dosyasının linki", mp4: "71 nolu MP4 dosyasının linki" },
+    { number: 72, png: "72 nolu PNG dosyasının linki", mp4: "72 nolu MP4 dosyasının linki" },
+    { number: 73, png: "73 nolu PNG dosyasının linki", mp4: "73 nolu MP4 dosyasının linki" },
+    { number: 74, png: "74 nolu PNG dosyasının linki", mp4: "74 nolu MP4 dosyasının linki" },
+    { number: 75, png: "75 nolu PNG dosyasının linki", mp4: "75 nolu MP4 dosyasının linki" },
+    { number: 76, png: "76 nolu PNG dosyasının linki", mp4: "76 nolu MP4 dosyasının linki" },
+    { number: 77, png: "77 nolu PNG dosyasının linki", mp4: "77 nolu MP4 dosyasının linki" },
+    { number: 78, png: "78 nolu PNG dosyasının linki", mp4: "78 nolu MP4 dosyasının linki" },
+    { number: 79, png: "79 nolu PNG dosyasının linki", mp4: "79 nolu MP4 dosyasının linki" },
+    { number: 80, png: "80 nolu PNG dosyasının linki", mp4: "80 nolu MP4 dosyasının linki" },
+    { number: 81, png: "81 nolu PNG dosyasının linki", mp4: "81 nolu MP4 dosyasının linki" },
+    { number: 82, png: "82 nolu PNG dosyasının linki", mp4: "82 nolu MP4 dosyasının linki" },
+    { number: 83, png: "83 nolu PNG dosyasının linki", mp4: "83 nolu MP4 dosyasının linki" },
+    { number: 84, png: "84 nolu PNG dosyasının linki", mp4: "84 nolu MP4 dosyasının linki" },
+    { number: 85, png: "85 nolu PNG dosyasının linki", mp4: "85 nolu MP4 dosyasının linki" },
+    { number: 86, png: "86 nolu PNG dosyasının linki", mp4: "86 nolu MP4 dosyasının linki" },
+    { number: 87, png: "87 nolu PNG dosyasının linki", mp4: "87 nolu MP4 dosyasının linki" },
+    { number: 88, png: "88 nolu PNG dosyasının linki", mp4: "88 nolu MP4 dosyasının linki" },
+    { number: 89, png: "89 nolu PNG dosyasının linki", mp4: "89 nolu MP4 dosyasının linki" },
+    { number: 90, png: "90 nolu PNG dosyasının linki", mp4: "90 nolu MP4 dosyasının linki" },
+    { number: 91, png: "91 nolu PNG dosyasının linki", mp4: "91 nolu MP4 dosyasının linki" },
+    { number: 92, png: "92 nolu PNG dosyasının linki", mp4: "92 nolu MP4 dosyasının linki" },
+    { number: 93, png: "93 nolu PNG dosyasının linki", mp4: "93 nolu MP4 dosyasının linki" }
+];
+
+let currentSlide = 0;
+let imageRequest = 0;
+const slideImage = document.getElementById('slideImage');
+const slideFallback = document.getElementById('slideFallback');
+const videoFrame = document.getElementById('videoFrame');
+const imageMissing = document.getElementById('imageMissing');
+const videoMissing = document.getElementById('videoMissing');
+const counter = document.getElementById('counter');
+const prev = document.getElementById('prev');
+const next = document.getElementById('next');
+
+function driveId(url) {
+  const match = url.match(/\/file\/d\/([^/?#]+)/) || url.match(/[?&]id=([^&#]+)/);
+  return match ? match[1] : null;
+}
+function previewUrl(id) { return 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview'; }
+function imageUrl(id) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600'; }
+function showSlide() {
+  const lesson = lessons[currentSlide];
+  const request = ++imageRequest;
+  const pngId = driveId(lesson.png);
+  const mp4Id = driveId(lesson.mp4);
+  slideImage.onload = null;
+  slideImage.onerror = null;
+  slideImage.removeAttribute('src');
+  slideFallback.removeAttribute('src');
+  slideFallback.style.display = 'none';
+  imageMissing.style.display = 'none';
+  if (!pngId) {
+    slideImage.style.display = 'none';
+    imageMissing.textContent = lesson.number + ' nolu PNG dosyasının linki henüz eklenmedi.';
+    imageMissing.style.display = 'flex';
+  } else {
+    slideImage.style.display = 'block';
+    slideImage.onload = function () {
+      if (request !== imageRequest) return;
+      slideImage.style.display = 'block';
+      slideFallback.style.display = 'none';
+    };
+    slideImage.onerror = function () {
+      if (request !== imageRequest) return;
+      slideImage.style.display = 'none';
+      slideFallback.style.display = 'block';
+      slideFallback.src = previewUrl(pngId);
+    };
+    slideImage.src = imageUrl(pngId);
+  }
+  videoFrame.src = 'about:blank';
+  videoMissing.style.display = 'none';
+  if (!mp4Id) {
+    videoFrame.style.display = 'none';
+    videoMissing.textContent = lesson.number + ' nolu MP4 dosyasının linki henüz eklenmedi.';
+    videoMissing.style.display = 'flex';
+  } else {
+    videoFrame.style.display = 'block';
+    videoFrame.src = previewUrl(mp4Id);
+  }
+  counter.textContent = 'Sayfa ' + lesson.number + ' / ' + lessons.length;
+  prev.disabled = currentSlide === 0;
+  next.disabled = currentSlide === lessons.length - 1;
+}
+function changeSlide(direction) {
+  const target = currentSlide + direction;
+  if (target < 0 || target >= lessons.length) return;
+  currentSlide = target;
+  showSlide();
+}
+function toggleFullscreen() {
+  const area = document.getElementById('presentation');
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (area.requestFullscreen) area.requestFullscreen().catch(function () { alert('Bu tarayıcıda tam ekran desteklenmiyor.'); });
+  else alert('Bu tarayıcıda tam ekran desteklenmiyor.');
+}
+document.addEventListener('keydown', function (event) {
+  if (event.target.closest('input, textarea, select, button')) return;
+  if (event.key === 'ArrowRight') changeSlide(1);
+  if (event.key === 'ArrowLeft') changeSlide(-1);
+});
+showSlide();
+</script>
+</body>
+</html>
