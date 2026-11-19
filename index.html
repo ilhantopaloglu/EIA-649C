@@ -54,11 +54,15 @@ button:disabled { opacity: 0.4; cursor: default; }
     <iframe id="videoFrame" class="video-frame" title="Anlatım videosu" allow="autoplay; fullscreen; encrypted-media" allowfullscreen referrerpolicy="no-referrer"></iframe>
     <div id="videoMissing" class="missing"></div>
   </div>
+  <section id="quizPanel" style="display:none;background:#fff;padding:20px;border-radius:8px;min-height:420px;box-shadow:0 3px 14px #0002">
+    <iframe id="quizFrame" title="Bilgi değerlendirme testi" style="width:100%;min-height:650px;border:0" scrolling="auto"></iframe>
+    <div id="quizError" style="display:none;padding:16px;color:#a22"></div>
+  </section>
   <nav class="controls">
     <button id="prev" onclick="changeSlide(-1)">◀ Önceki</button>
     <span id="counter">Sayfa 1 / 93</span>
     <button id="next" onclick="changeSlide(1)">Sonraki ▶</button>
-    <button onclick="toggleFullscreen()">⛶ Tam Ekran</button>
+    <button id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Tam Ekran</button>
   </nav>
   <details class="help">
     <summary>Mobil Cihazlarda Görüntüleme Sorunları</summary>
@@ -188,6 +192,104 @@ const lessons = [
     { number: 93, png: "https://drive.google.com/file/d/10_oJ79MSOux0v8JMlT8NC4ZbYDJkuXIy/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1tOELid-7-uei_NbL8pyAuf91ZJ3rPPVi/view?usp=drive_link" }
 ];
 
+/* TEST BAĞLANTILARI: 04–92. GitHub Pages'te aynı dizine yüklenen
+   04.html, 05.html ... dosyaları, bağlantı girilmeden de çalışır.
+   Harici URL kullanırsanız HTML sayfası olarak yayınlanmış olmalıdır;
+   Google Drive dosya önizlemesi etkileşimli HTML çalıştırmaz. */
+const quizLinks = {
+  4: "https://drive.google.com/file/d/1V7Lprs0JP9-Sedl80ZxyIgIj49xvOmQA/view?usp=drive_link",
+  5: "05.html linkini ekle",
+  6: "06.html linkini ekle",
+  7: "07.html linkini ekle",
+  8: "08.html linkini ekle",
+  9: "09.html linkini ekle",
+  10: "10.html linkini ekle",
+  11: "11.html linkini ekle",
+  12: "12.html linkini ekle",
+  13: "13.html linkini ekle",
+  14: "14.html linkini ekle",
+  15: "15.html linkini ekle",
+  16: "16.html linkini ekle",
+  17: "17.html linkini ekle",
+  18: "18.html linkini ekle",
+  19: "19.html linkini ekle",
+  20: "20.html linkini ekle",
+  21: "21.html linkini ekle",
+  22: "22.html linkini ekle",
+  23: "23.html linkini ekle",
+  24: "24.html linkini ekle",
+  25: "25.html linkini ekle",
+  26: "26.html linkini ekle",
+  27: "27.html linkini ekle",
+  28: "28.html linkini ekle",
+  29: "29.html linkini ekle",
+  30: "30.html linkini ekle",
+  31: "31.html linkini ekle",
+  32: "32.html linkini ekle",
+  33: "33.html linkini ekle",
+  34: "34.html linkini ekle",
+  35: "35.html linkini ekle",
+  36: "36.html linkini ekle",
+  37: "37.html linkini ekle",
+  38: "38.html linkini ekle",
+  39: "39.html linkini ekle",
+  40: "40.html linkini ekle",
+  41: "41.html linkini ekle",
+  42: "42.html linkini ekle",
+  43: "43.html linkini ekle",
+  44: "44.html linkini ekle",
+  45: "45.html linkini ekle",
+  46: "46.html linkini ekle",
+  47: "47.html linkini ekle",
+  48: "48.html linkini ekle",
+  49: "49.html linkini ekle",
+  50: "50.html linkini ekle",
+  51: "51.html linkini ekle",
+  52: "52.html linkini ekle",
+  53: "53.html linkini ekle",
+  54: "54.html linkini ekle",
+  55: "55.html linkini ekle",
+  56: "56.html linkini ekle",
+  57: "57.html linkini ekle",
+  58: "58.html linkini ekle",
+  59: "59.html linkini ekle",
+  60: "60.html linkini ekle",
+  61: "61.html linkini ekle",
+  62: "62.html linkini ekle",
+  63: "63.html linkini ekle",
+  64: "64.html linkini ekle",
+  65: "65.html linkini ekle",
+  66: "66.html linkini ekle",
+  67: "67.html linkini ekle",
+  68: "68.html linkini ekle",
+  69: "69.html linkini ekle",
+  70: "70.html linkini ekle",
+  71: "71.html linkini ekle",
+  72: "72.html linkini ekle",
+  73: "73.html linkini ekle",
+  74: "74.html linkini ekle",
+  75: "75.html linkini ekle",
+  76: "76.html linkini ekle",
+  77: "77.html linkini ekle",
+  78: "78.html linkini ekle",
+  79: "79.html linkini ekle",
+  80: "80.html linkini ekle",
+  81: "81.html linkini ekle",
+  82: "82.html linkini ekle",
+  83: "83.html linkini ekle",
+  84: "84.html linkini ekle",
+  85: "85.html linkini ekle",
+  86: "86.html linkini ekle",
+  87: "87.html linkini ekle",
+  88: "88.html linkini ekle",
+  89: "89.html linkini ekle",
+  90: "90.html linkini ekle",
+  91: "91.html linkini ekle",
+  92: "92.html linkini ekle"
+};
+const quizDone = new Set();
+let view = 'slide';
+let quizLoadedUrl = '';
 let currentSlide = 0;
 let imageRequest = 0;
 const slideImage = document.getElementById('slideImage');
@@ -198,6 +300,11 @@ const videoMissing = document.getElementById('videoMissing');
 const counter = document.getElementById('counter');
 const prev = document.getElementById('prev');
 const next = document.getElementById('next');
+const quizPanel = document.getElementById('quizPanel');
+const quizFrame = document.getElementById('quizFrame');
+const quizError = document.getElementById('quizError');
+const presentation = document.getElementById('presentation');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 
 function driveId(url) {
   const match = url.match(/\/file\/d\/([^/?#]+)/) || url.match(/[?&]id=([^&#]+)/);
@@ -205,7 +312,55 @@ function driveId(url) {
 }
 function previewUrl(id) { return 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview'; }
 function imageUrl(id) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600'; }
+function quizUrl(number) {
+  const raw = quizLinks[number];
+  if (!raw || raw.includes('linkini ekle')) return String(number).padStart(2,'0') + '.html';
+  return raw;
+}
+function showQuiz() {
+  const number = lessons[currentSlide].number;
+  view = 'quiz';
+  presentation.style.display = 'none';
+  quizPanel.style.display = 'block';
+  quizError.style.display = 'none';
+  quizLoadedUrl = new URL(quizUrl(number), location.href).href;
+  quizFrame.src = quizLoadedUrl;
+  counter.textContent = 'Sayfa ' + number + ' — Test';
+  prev.disabled = false;
+  next.disabled = !quizDone.has(number);
+  next.textContent = 'Sonraki Sayfa ▶';
+  fullscreenBtn.disabled = true;
+  window.scrollTo(0,0);
+}
+window.addEventListener('message', function(event) {
+  if (view !== 'quiz' || event.source !== quizFrame.contentWindow) return;
+  let expected;
+  try { expected = new URL(quizLoadedUrl).origin; } catch { return; }
+  if (event.origin !== expected || !event.data || typeof event.data !== 'object') return;
+  const number = lessons[currentSlide].number;
+  if (event.data.page !== number) return;
+  if (event.data.type === 'quiz-completed') {
+    quizDone.add(number);
+    next.disabled = false;
+  }
+  if (event.data.type === 'quiz-next-request' && quizDone.has(number)) {
+    changeSlide(1);
+  }
+  if (event.data.type === 'quiz-changed') {
+    quizDone.delete(number);
+    next.disabled = true;
+  }
+  if (event.data.type === 'quiz-height' && Number.isFinite(event.data.height)) {
+    quizFrame.style.height = Math.max(450, Math.min(5000,event.data.height+20)) + 'px';
+  }
+});
 function showSlide() {
+  view = 'slide';
+  quizFrame.src = 'about:blank';
+  quizPanel.style.display = 'none';
+  presentation.style.display = '';
+  fullscreenBtn.disabled = false;
+  next.textContent = 'Sonraki ▶';
   const lesson = lessons[currentSlide];
   const request = ++imageRequest;
   const pngId = driveId(lesson.png);
@@ -250,9 +405,23 @@ function showSlide() {
   next.disabled = currentSlide === lessons.length - 1;
 }
 function changeSlide(direction) {
-  const target = currentSlide + direction;
-  if (target < 0 || target >= lessons.length) return;
-  currentSlide = target;
+  if (direction < 0) {
+    if (view === 'quiz') { showSlide(); return; }
+    if (currentSlide === 0) return;
+    const previousNumber = lessons[currentSlide-1].number;
+    currentSlide--;
+    if (previousNumber >= 4 && previousNumber <= 92) showQuiz();
+    else showSlide();
+    return;
+  }
+  if (currentSlide === lessons.length - 1) return;
+  const number = lessons[currentSlide].number;
+  if (view === 'slide' && number >= 4 && number <= 92) {
+    showQuiz();
+    return;
+  }
+  if (view === 'quiz' && !quizDone.has(number)) return;
+  currentSlide++;
   showSlide();
 }
 function toggleFullscreen() {
