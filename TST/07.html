@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bilgi Değerlendirme</title>
+<style>
+*{box-sizing:border-box}body{font:16px Arial,sans-serif;color:#163653;background:#fff;margin:0;padding:16px;line-height:1.5}main{max-width:900px;margin:auto}h1{font-size:23px}.question{padding:17px 0;border-bottom:1px solid #dbe3ec}.question h2{font-size:17px;margin:0 0 12px}.option{display:flex;align-items:flex-start;gap:10px;padding:12px;margin:7px 0;border:1px solid #ccd8e3;border-radius:7px;cursor:pointer}.option input{margin-top:4px;flex-shrink:0}.option.correct{background:#e3f5e8;border-color:#28914b;color:#17612e}.option.wrong{background:#fce7e7;border-color:#d04b4b;color:#a22525}button{padding:12px 20px;border:0;border-radius:6px;background:#123858;color:white;cursor:pointer;font-size:15px}button:disabled{opacity:.4;cursor:default}#next{margin-top:12px}#warning{font-size:14px;color:#64748b}#summary{font-weight:bold;margin-top:16px}.actions{margin-top:20px}small{color:#64748b}
+</style></head><body><main>
+<h1>Sayfa 7 — Bilgi Değerlendirme</h1>
+<p>Her soruda bir seçenek işaretleyiniz. Yanlış cevaplarınızı düzelterek testi tekrar değerlendirebilirsiniz.</p>
+<div id="questions"></div>
+<div id="summary" aria-live="polite"></div>
+<div class="actions"><button id="finish" disabled>Testi Bitir</button></div>
+<button id="next" disabled>Sonraki Sayfa ▶</button>
+<p id="warning">Bir sonraki sayfaya geçebilmeniz için tüm soruları doğru cevaplamalısınız.</p>
+</main><script>
+/* DİĞER TESTLER İÇİN YALNIZCA SAYFA NUMARASINI VE SORULARI DEĞİŞTİRİN. */
+const PAGE = 7;
+const QUESTIONS = [
+  {question:'Bu sayfaya ait sorular henüz hazırlanmamıştır. İlk seçeneği işaretleyip eğitime devam edebilirsiniz.',options:['Bir sonraki sayfaya geç','Bir sonraki sayfaya geçme'],correct:0},
+
+];
+const answers = Array(QUESTIONS.length).fill(null);
+const evaluated = Array(QUESTIONS.length).fill(null);
+const container=document.getElementById('questions');
+const finish=document.getElementById('finish');
+const next=document.getElementById('next');
+const warning=document.getElementById('warning');
+const summary=document.getElementById('summary');
+function notify(type,extra={}) { if(window.parent!==window)window.parent.postMessage({type,page:PAGE,...extra},'*'); }
+function updateHeight(){notify('quiz-height',{height:document.documentElement.scrollHeight});}
+function render(){
+ container.replaceChildren();
+ QUESTIONS.forEach((q,i)=>{
+  const section=document.createElement('section');section.className='question';
+  const title=document.createElement('h2');title.textContent=(i+1)+'. '+q.question;section.append(title);
+  q.options.forEach((opt,j)=>{
+   const label=document.createElement('label');label.className='option';
+   if(answers[i]===j && evaluated[i]!==null)label.classList.add(evaluated[i]?'correct':'wrong');
+   const input=document.createElement('input');input.type='radio';input.name='question-'+i;input.value=j;input.checked=answers[i]===j;
+   input.addEventListener('change',()=>{
+    answers[i]=j;evaluated[i]=null;next.disabled=true;warning.hidden=false;summary.textContent='';
+    notify('quiz-changed');render();
+   });
+   const span=document.createElement('span');span.textContent=opt;label.append(input,span);section.append(label);
+  });container.append(section);
+ });
+ finish.disabled=answers.some(a=>a===null);
+ updateHeight();
+}
+finish.addEventListener('click',()=>{
+ QUESTIONS.forEach((q,i)=>evaluated[i]=answers[i]===q.correct);
+ const count=evaluated.filter(Boolean).length;
+ const passed=count===QUESTIONS.length;
+ summary.textContent=passed?'Tebrikler! Bütün sorular doğru.':count+' / '+QUESTIONS.length+' soru doğru. Kırmızı cevapları değiştirip yeniden deneyiniz.';
+ next.disabled=!passed;warning.hidden=passed;
+ if(passed)notify('quiz-completed');
+ render();
+});
+next.addEventListener('click',()=>{
+ if(next.disabled)return;
+ if(window.parent!==window){notify('quiz-next-request');}
+ else alert('Test tamamlandı. Ana eğitim sayfasına dönerek Sonraki Sayfa düğmesine basınız.');
+});
+window.addEventListener('load',updateHeight);
+render();
+</script></body></html>
