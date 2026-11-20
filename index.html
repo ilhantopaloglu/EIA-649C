@@ -1,296 +1,734 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EIA-649C Temelinde Konfigürasyon Yönetimi</title>
+
 <style>
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; }
-body { font-family: Arial, sans-serif; background: #e8edf3; color: #163653; }
-header { padding: 13px; background: #123858; color: white; text-align: center; font-size: clamp(14px,2vw,20px); font-weight: bold; }
-.container { width: min(98%,1500px); margin: 12px auto; }
-.presentation { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: white; box-shadow: 0 3px 14px #0002; }
-.slide-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: fill; }
-.slide-fallback { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: none; }
-.video-frame { position: absolute; top: 16.4%; left: 74.4%; height: 72.5%; width: auto; aspect-ratio: 9/16; border: 0; background: #111; z-index: 2; }
-.missing { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 15px; background: #f5f8fc; color: #163653; font-size: clamp(12px,1.4vw,18px); }
-#videoMissing { inset: auto; top: 16.4%; left: 74.4%; height: 72.5%; width: auto; aspect-ratio: 9/16; z-index: 3; background: #e8edf3; }
-.controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; padding: 14px 5px; }
-button { border: 0; border-radius: 6px; background: #123858; color: white; padding: 11px 16px; cursor: pointer; font-size: 14px; }
-button:hover:not(:disabled) { background: #20618d; }
-button:disabled { opacity: 0.4; cursor: default; }
-#counter { font-weight: bold; min-width: 105px; text-align: center; }
-.help { max-width: 850px; margin: 15px auto; padding: 12px 18px; background: #f5f8fc; border: 1px solid #ccd8e3; border-radius: 8px; font-size: 13px; line-height: 1.7; }
-.help summary { font-weight: bold; cursor: pointer; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #e8edf3;
+  color: #163653;
+}
+
+header {
+  padding: 13px;
+  background: #123858;
+  color: white;
+  text-align: center;
+  font-size: clamp(14px,2vw,20px);
+  font-weight: bold;
+}
+
+.container {
+  width: min(98%,1500px);
+  margin: 12px auto;
+}
+
+.presentation {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 3px 14px #0002;
+}
+
+.slide-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.slide-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: none;
+}
+
+.video-frame {
+  position: absolute;
+  top: 16.4%;
+  left: 74.4%;
+  height: 72.5%;
+  width: auto;
+  aspect-ratio: 9/16;
+  border: 0;
+  background: #111;
+  z-index: 2;
+}
+
+.missing {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 15px;
+  background: #f5f8fc;
+  color: #163653;
+  font-size: clamp(12px,1.4vw,18px);
+}
+
+#videoMissing {
+  inset: auto;
+  top: 16.4%;
+  left: 74.4%;
+  height: 72.5%;
+  width: auto;
+  aspect-ratio: 9/16;
+  z-index: 3;
+  background: #e8edf3;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 5px;
+}
+
+button {
+  border: 0;
+  border-radius: 6px;
+  background: #123858;
+  color: white;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover:not(:disabled) {
+  background: #20618d;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+#counter {
+  font-weight: bold;
+  min-width: 105px;
+  text-align: center;
+}
+
+#pauseBtn {
+  background: #526779;
+}
+
+#pauseBtn:hover {
+  background: #3a5165;
+}
+
+/* İLERLEME BİLGİSİ */
+
+.progress-area {
+  max-width: 850px;
+  margin: 0 auto 15px;
+  padding: 0 12px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #64748b;
+}
+
+.progress-track {
+  width: 100%;
+  height: 7px;
+  background: #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #123858;
+  transition: width 0.2s;
+}
+
+/* KALDIĞI YERDEN DEVAM ETME EKRANI */
+
+.resume-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,28,45,0.85);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.resume-card {
+  width: min(100%,440px);
+  max-height: 95vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  padding: 26px;
+  text-align: center;
+  box-shadow: 0 8px 35px #0004;
+}
+
+.resume-card h2 {
+  margin: 0 0 15px;
+  font-size: 23px;
+}
+
+.resume-card p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.resume-details {
+  background: #f0f4f8;
+  border-radius: 8px;
+  padding: 18px;
+  margin: 18px 0;
+}
+
+.resume-page {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.resume-card button {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px;
+}
+
+.resume-card .secondary {
+  background: white;
+  color: #123858;
+  border: 1px solid #b8c8d6;
+}
+
+.resume-card .secondary:hover {
+  background: #edf3f8;
+}
+
+.resume-card .small-note {
+  color: #64748b;
+  font-size: 11px;
+  margin-top: 20px;
+}
+
+.help {
+  max-width: 850px;
+  margin: 15px auto;
+  padding: 12px 18px;
+  background: #f5f8fc;
+  border: 1px solid #ccd8e3;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.help summary {
+  font-weight: bold;
+  cursor: pointer;
+}
+
 .help p { margin: 10px 0; }
-.warning { font-size: 11px; color: #64748b; }
-.notice { max-width: 850px; margin: 20px auto 30px; padding: 15px; text-align: center; font-size: 12px; line-height: 1.7; color: #64748b; border-top: 1px solid #ccd8e3; }
+
+.warning {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.notice {
+  max-width: 850px;
+  margin: 20px auto 30px;
+  padding: 15px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #64748b;
+  border-top: 1px solid #ccd8e3;
+}
+
 .notice p { margin: 7px 0; }
-.notice strong { color: #163653; font-size: 13px; }
+
+.notice strong {
+  color: #163653;
+  font-size: 13px;
+}
+
 @media (max-width: 767px) and (orientation: portrait) {
- .container { width: 100%; padding: 8px; margin: 0 auto; }
- .presentation { display: flex; flex-direction: column; gap: 12px; aspect-ratio: auto; overflow: visible; background: transparent; box-shadow: none; }
- .slide-image, .slide-fallback, #imageMissing { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 16/9; background: white; }
- .video-frame, #videoMissing { position: relative; left: auto; top: auto; width: min(72%,320px); height: auto; aspect-ratio: 9/16; margin: 0 auto; border-radius: 8px; }
+  .container {
+    width: 100%;
+    padding: 8px;
+    margin: 0 auto;
+  }
+
+  .presentation {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    aspect-ratio: auto;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .slide-image, .slide-fallback, #imageMissing {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    background: white;
+  }
+
+  .video-frame, #videoMissing {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: min(72%,320px);
+    height: auto;
+    aspect-ratio: 9/16;
+    margin: 0 auto;
+    border-radius: 8px;
+  }
+
+  .resume-card {
+    padding: 20px;
+  }
 }
+
 @media (max-height: 600px) and (orientation: landscape) {
- header { padding: 6px; font-size: 13px; }
- .container { width: 100%; padding: 6px; margin: 0 auto; }
- .presentation { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,1fr); gap: 6px; aspect-ratio: auto; height: min(72dvh,520px); box-shadow: none; background: transparent; }
- .slide-image, .slide-fallback, #imageMissing { position: relative; inset: auto; width: 100%; height: 100%; min-width: 0; object-fit: contain; }
- .video-frame, #videoMissing { position: relative; left: auto; top: auto; width: 100%; height: 100%; min-width: 0; aspect-ratio: auto; }
+  header {
+    padding: 6px;
+    font-size: 13px;
+  }
+
+  .container {
+    width: 100%;
+    padding: 6px;
+    margin: 0 auto;
+  }
+
+  .presentation {
+    display: grid;
+    grid-template-columns: minmax(0,3fr) minmax(0,1fr);
+    gap: 6px;
+    aspect-ratio: auto;
+    height: min(72dvh,520px);
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .slide-image, .slide-fallback, #imageMissing {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    object-fit: contain;
+  }
+
+  .video-frame, #videoMissing {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    aspect-ratio: auto;
+  }
 }
-.presentation:fullscreen { width: 100vw; height: 100dvh; background: #111; }
+
+.presentation:fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  background: #111;
+}
 </style>
 </head>
+
 <body>
-<header>EIA-649C Temelinde Konfigürasyon Yönetimi</header>
+
+<header>
+EIA-649C Temelinde Konfigürasyon Yönetimi
+</header>
+
 <main class="container">
+
   <div class="presentation" id="presentation">
-    <img id="slideImage" class="slide-image" alt="Eğitim slaytı">
-    <iframe id="slideFallback" class="slide-fallback" title="Google Drive slayt önizlemesi"></iframe>
+
+    <img id="slideImage"
+         class="slide-image"
+         alt="Eğitim slaytı">
+
+    <iframe id="slideFallback"
+            class="slide-fallback"
+            title="Google Drive slayt önizlemesi">
+    </iframe>
+
     <div id="imageMissing" class="missing"></div>
-    <iframe id="videoFrame" class="video-frame" title="Anlatım videosu" allow="autoplay; fullscreen; encrypted-media" allowfullscreen referrerpolicy="no-referrer"></iframe>
+
+    <iframe id="videoFrame"
+            class="video-frame"
+            title="Anlatım videosu"
+            allow="autoplay; fullscreen; encrypted-media"
+            allowfullscreen
+            referrerpolicy="no-referrer">
+    </iframe>
+
     <div id="videoMissing" class="missing"></div>
+
   </div>
-  <section id="quizPanel" style="display:none;background:#fff;padding:20px;border-radius:8px;min-height:420px;box-shadow:0 3px 14px #0002">
-    <iframe id="quizFrame" title="Bilgi değerlendirme testi" style="width:100%;min-height:650px;border:0" scrolling="auto"></iframe>
-    <div id="quizError" style="display:none;padding:16px;color:#a22"></div>
+
+  <section id="quizPanel"
+           style="display:none;background:#fff;padding:20px;
+           border-radius:8px;min-height:420px;
+           box-shadow:0 3px 14px #0002">
+
+    <iframe id="quizFrame"
+            title="Bilgi değerlendirme testi"
+            style="width:100%;min-height:650px;border:0"
+            scrolling="auto">
+    </iframe>
+
+    <div id="quizError"
+         style="display:none;padding:16px;color:#a22">
+    </div>
+
   </section>
+
   <nav class="controls">
-    <button id="prev" onclick="changeSlide(-1)">◀ Önceki</button>
+
+    <button id="prev" onclick="changeSlide(-1)">
+      ◀ Önceki
+    </button>
+
     <span id="counter">Sayfa 1 / 93</span>
-    <button id="next" onclick="changeSlide(1)">Sonraki ▶</button>
-    <button id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Tam Ekran</button>
+
+    <button id="next" onclick="changeSlide(1)">
+      Sonraki ▶
+    </button>
+
+    <button id="fullscreenBtn" onclick="toggleFullscreen()">
+      ⛶ Tam Ekran
+    </button>
+
+    <button id="pauseBtn" onclick="pauseTraining()">
+      ⏸ Ara Ver
+    </button>
+
   </nav>
+
+  <div class="progress-area">
+
+    <div class="progress-info">
+      <span id="progressText">Sayfa konumu: %1,1</span>
+      <span id="saveStatus" aria-live="polite"></span>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+  </div>
+
   <details class="help">
+
     <summary>Mobil Cihazlarda Görüntüleme Sorunları</summary>
+
     <p>Google hesabınıza giriş yaptığınızdan emin olunuz.</p>
-    <p>Sunum sayfaları veya videolar görüntülenmiyorsa öncelikle tarayıcıyı tamamen kapatıp yeniden açmayı deneyiniz. </p>
-    <p>Üçüncü taraf çerez kısıtlamaları, Google Drive üzerinden paylaşılan içeriklerin görüntülenmesini etkileyebilir. Sorun devam ederse aşağıdaki ayarları kontrol ediniz.</p>
+
+    <p>Sunum sayfaları veya videolar görüntülenmiyorsa
+    öncelikle tarayıcıyı tamamen kapatıp yeniden açmayı deneyiniz.</p>
+
+    <p>Üçüncü taraf çerez kısıtlamaları, Google Drive üzerinden
+    paylaşılan içeriklerin görüntülenmesini etkileyebilir.
+    Sorun devam ederse aşağıdaki ayarları kontrol ediniz.</p>
+
     <p><strong>iOS ayarları (Safari):</strong></p>
+
     <p>1. Ayarlar → Uygulamalar → Safari bölümünü açınız.</p>
-    <p>2. Siteler Arası Takibi Engelle (Prevent Cross-Site Tracking) seçeneğini geçici olarak kapatınız.</p>
-    <p>3. Tüm Çerezleri Engelle (Block All Cookies) seçeneği varsa kapalı olduğundan emin olunuz. Bu seçenek bazı iOS sürümlerinde İleri Düzey (Advanced) bölümünde bulunabilir.</p>
+
+    <p>2. Siteler Arası Takibi Engelle
+    (Prevent Cross-Site Tracking) seçeneğini geçici olarak kapatınız.</p>
+
+    <p>3. Tüm Çerezleri Engelle (Block All Cookies)
+    seçeneği varsa kapalı olduğundan emin olunuz.
+    Bu seçenek bazı iOS sürümlerinde İleri Düzey
+    (Advanced) bölümünde bulunabilir.</p>
+
     <p>4. Safari'yi tamamen kapatıp sunum bağlantısını yeniden açınız.</p>
-    <p><strong>Andoid ayarları (Google Chrome):</strong></p>
+
+    <p><strong>Android ayarları (Google Chrome):</strong></p>
+
     <p>1. Chrome uygulamasını açınız.</p>
+
     <p>2. Sağ üstteki üç nokta (⋮) → Ayarlar bölümüne giriniz.</p>
+
     <p>3. Site ayarları → Üçüncü taraf çerezleri bölümünü açınız.</p>
-    <p>4. Mümkünse yalnızca ilgili site için istisna tanımlayınız. Bu seçenek bulunmuyorsa üçüncü taraf çerezlerine geçici olarak izin veriniz.</p>
+
+    <p>4. Mümkünse yalnızca ilgili site için istisna tanımlayınız.
+    Bu seçenek bulunmuyorsa üçüncü taraf çerezlerine geçici olarak
+    izin veriniz.</p>
+
     <p>5. Chrome'u kapatıp sunum bağlantısını yeniden açınız.</p>
-    <p class="warning">Bu değişiklikler yalnızca görüntüleme sorunu yaşanması durumunda uygulanmalıdır. Sunum tamamlandıktan sonra gizlilik ve güvenlik açısından geçici olarak değiştirilen ayarların eski durumuna getirilmesi önerilir.</p>
+
+    <p class="warning">
+    Bu değişiklikler yalnızca görüntüleme sorunu yaşanması
+    durumunda uygulanmalıdır. Sunum tamamlandıktan sonra
+    gizlilik ve güvenlik açısından geçici olarak değiştirilen
+    ayarların eski durumuna getirilmesi önerilir.
+    </p>
+
   </details>
+
   <footer class="notice">
-    <p><strong>© 2026 İlhan Topaloğlu. Tüm hakları saklıdır.</strong></p>
-    <p>Eğitim içeriği İlhan Topaloğlu tarafından hazırlanmıştır. Katılımcılara, kendilerine tanımlanan erişim tarihinden itibaren bir hafta süreyle yalnızca kişisel eğitim amacıyla görüntüleme hakkı verilmiştir. İçeriğin izinsiz indirilmesi, çoğaltılması, paylaşılması veya üçüncü kişilere aktarılması yasaktır.</p>
+
+    <p><strong>© 2026 İlhan Topaloğlu.
+    Tüm hakları saklıdır.</strong></p>
+
+    <p>Eğitim içeriği İlhan Topaloğlu tarafından hazırlanmıştır.
+    Katılımcılara, kendilerine tanımlanan erişim tarihinden
+    itibaren bir hafta süreyle yalnızca kişisel eğitim amacıyla
+    görüntüleme hakkı verilmiştir. İçeriğin izinsiz indirilmesi,
+    çoğaltılması, paylaşılması veya üçüncü kişilere aktarılması
+    yasaktır.</p>
+
     <p>Bilgi için:
-     <a href="mailto:ilhant@gmail.com"
-     style="color:#163653; font-weight:bold;">
-     ilhant@gmail.com
-     </a>
-</p>
+      <a href="mailto:ilhant@gmail.com"
+         style="color:#163653;font-weight:bold;">
+        ilhant@gmail.com
+      </a>
+    </p>
+
   </footer>
+
 </main>
+
+<!-- KALDIĞI YERDEN DEVAM ETME EKRANI -->
+
+<div id="resumeOverlay" class="resume-overlay"
+     role="dialog" aria-modal="true"
+     aria-labelledby="resumeTitle">
+
+  <div class="resume-card">
+
+    <h2 id="resumeTitle">Eğitime Hoş Geldiniz</h2>
+
+    <p id="resumeMessage">
+      Önceki eğitim oturumunuz kaydedildi.
+    </p>
+
+    <div class="resume-details">
+
+      <div style="font-size:13px;color:#64748b">
+        Son görüntülenen sayfa
+      </div>
+
+      <div class="resume-page" id="resumePage"></div>
+
+      <p id="resumeStage"></p>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="resumeProgress"></div>
+      </div>
+
+      <p id="resumePercent"
+         style="font-size:12px;margin-bottom:0"></p>
+
+      <p id="resumeDate"
+         style="font-size:11px;color:#64748b"></p>
+
+    </div>
+
+    <button id="resumeNextBtn" onclick="resumeNext()">
+      Sonraki sayfadan devam et ▶
+    </button>
+
+    <button id="resumeCurrentBtn"
+            class="secondary"
+            onclick="resumeCurrent()">
+      Kaldığım yerden devam et
+    </button>
+
+    <button id="resumeReviewBtn"
+            class="secondary"
+            onclick="resumeReview()">
+      Sayfayı tekrar görüntüle
+    </button>
+
+    <button class="secondary" onclick="restartTraining()">
+      Eğitime baştan başla
+    </button>
+
+    <p class="small-note">
+      Eğitim ilerlemeniz bu cihazdaki tarayıcıda saklanır.
+      Farklı bir cihaz veya tarayıcı kullanmanız ya da
+      tarayıcı verilerini silmeniz durumunda önceki
+      ilerlemeniz görüntülenemeyebilir.
+    </p>
+
+  </div>
+
+</div>
+
 <script>
-/* YALNIZCA BU LİSTEDEKİ TIRNAK İÇİ BAĞLANTILARI DEĞİŞTİRİN.
-   Her sayfa için Google Drive'dan alınan paylaşım bağlantısını yapıştırın. */
-const lessons = [
-    { number: 1, png: "https://drive.google.com/file/d/1B1mr2oWFFCL2vzemLzZwfOCTzba_f-mV/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1vldE0eXovbLoKbDxe_-2EwX9r6PaeLc-/view?usp=drive_link" },
-    { number: 2, png: "https://drive.google.com/file/d/19ZsiMquzXd2lquFZFrccCPEKDC8doksw/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1xlQc_Z6aDVicKFqCGnRGjALP1TbToIst/view?usp=drive_link" },
-    { number: 3, png: "https://drive.google.com/file/d/12WCKYrh6IoEiYTsyCxJKFvd614SOnuzg/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1VNTpirIwFiwq-Ww1RXSR8FCBFN389z2o/view?usp=drive_link" },
-    { number: 4, png: "https://drive.google.com/file/d/1BpQe311K2nvMl0rYHk1xSQ2avABokHWH/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1XhsQoJOM4xW0484_MZhjEf1lOeYlYAYR/view?usp=drive_link" },
-    { number: 5, png: "https://drive.google.com/file/d/1rUXEDf8wHuuRq9Rg6SeRiitzTbSnA1UO/view?usp=drive_link", mp4: "https://drive.google.com/file/d/14dcQAS8hRCOOKNpeR_uBbePzeZNXJgDd/view?usp=drive_link" },
-    { number: 6, png: "https://drive.google.com/file/d/1Gbcz-W5_FpMxne7u295Y_rCD5T0yAKRA/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1uCrAn98BET3x7_YqJCx4TCZNHcPYjI0j/view?usp=drive_link" },
-    { number: 7, png: "https://drive.google.com/file/d/1NcXLK5n6YV5278lGmhuMpbhE3ZhNwnj0/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1FoxP3-PNP_TA8xyMWDv-TUfAwcTsm81v/view?usp=drive_link" },
-    { number: 8, png: "https://drive.google.com/file/d/1P9kXuMFBYQq9Sp2h1C-NCKyTEsN1LBlV/view?usp=drive_link", mp4: "https://drive.google.com/file/d/18j_AK_mK0TONi5RPIKb9_DWwkUafiHAg/view?usp=drive_link" },
-    { number: 9, png: "https://drive.google.com/file/d/1j3RiNIizitb9kKA10nLOqoYT45CS-yKB/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1CL3EVp47cd1n-xtjtbyLAGW8pIzSxAci/view?usp=drive_link" },
-    { number: 10, png: "https://drive.google.com/file/d/1vsWPi4r7Xn2L7zuNzM17eJ1pfDSWdbn0/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1mUFAh2btTZ5i7Fd-DgZBHZUOI5wuHaQN/view?usp=drive_link" },
-    { number: 11, png: "https://drive.google.com/file/d/1kfC0JUU_6KxdDg-2pux4225m32hfAyaX/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1cPDRNk5GOxhP7t_VzcsK-BfmIy3s05p1/view?usp=drive_link" },
-    { number: 12, png: "https://drive.google.com/file/d/1Aql3JHSBjkOuOM0sgJRJSelufTOM-XTF/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Wv12BNjcpoc9D3Sz4Y4N0M_ZSAcdSgHG/view?usp=drive_link" },
-    { number: 13, png: "https://drive.google.com/file/d/1w1dMxl50iMqgn1GBz-f8TYgD5hLhzvWk/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1o3GAVvnrBQdJ15OJRYMLOHPwO3rUs8GG/view?usp=drive_link" },
-    { number: 14, png: "https://drive.google.com/file/d/1xBGMsIHvMfrf2U-LEwxeL4O09GyI6krz/view?usp=drive_link", mp4: "https://drive.google.com/file/d/16v3aXqTAgkrVkhNXOhafwJNQKmfROrWd/view?usp=drive_link" },
-    { number: 15, png: "https://drive.google.com/file/d/1-hTh_-G-US7e1DfaGxFx3J_L6wBZZGek/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1QfDy-2IXMVAYhQ5ZAC31MSddQwWY6NRP/view?usp=drive_link" },
-    { number: 16, png: "https://drive.google.com/file/d/1wqeFMbgcyMZMV2eSTuF12mDlEw3SYeBL/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1aPgf-fN4859m5RJmoH3jFVwTGGa95JE_/view?usp=drive_link" },
-    { number: 17, png: "https://drive.google.com/file/d/1VCYieLYMa5VSeQPTUvwcvIRbE3XYXIm2/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1mdzLNS7yUeTXxVFEFQp_au837kxGJJGj/view?usp=drive_link" },
-    { number: 18, png: "https://drive.google.com/file/d/17_yS_T0o0d63i74Naa1aEtGtyveKBd6P/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1DKoq89vt3ErPjZBCuMjd7zxlYPl606rv/view?usp=drive_link" },
-    { number: 19, png: "https://drive.google.com/file/d/1sURo1AEPeT9SPjDDP09hLSMbluNCK2j5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1ozCQdb1d-T1T2BY-UR5E92l9r-H852DC/view?usp=drive_link" },
-    { number: 20, png: "https://drive.google.com/file/d/1eNJaJdqqXEjxWKBHahsD9gEUbS82Hp-T/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1n4UxQ9JOnUou8-o3U1edi0qki-HctKZf/view?usp=drive_link" },
-    { number: 21, png: "https://drive.google.com/file/d/1awalKZkV6XsMLIvwNRDQnNfqGON1VqBM/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1s0VhccCpfMlepxrZSxLsm-BFWQb5CKN2/view?usp=drive_link" },
-    { number: 22, png: "https://drive.google.com/file/d/1grgnillSbXWmEx6ZMMY58hprGSdqkFs5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1MQB1CdagHbAB4O1DdxZwz6g57SXK2NZU/view?usp=drive_link" },
-    { number: 23, png: "https://drive.google.com/file/d/1Ex_IAxdQGaz_2Q1mdm_hcp_3549kKzLM/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1iK7V2QmMLFc8tCwtv5VbMzNO7Ybs-tUi/view?usp=drive_link" },
-    { number: 24, png: "https://drive.google.com/file/d/1VU13E4JrnI80PeP0MvydqwFnE4jM_T83/view?usp=drive_link", mp4: "https://drive.google.com/file/d/17MFCfh_8qJC9Zo1jAmwPjoO2tDhLfV3I/view?usp=drive_link" },
-    { number: 25, png: "https://drive.google.com/file/d/1nAw9_M4KlHG1aJiQmUhoA7Ed-viT-xhg/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1QI_NiNuDXXx9fKYWo9LrVQMfP12XJfT4/view?usp=drive_link" },
-    { number: 26, png: "https://drive.google.com/file/d/1doe4mY0I4oHsQElsbQeow3oy_c_5FoBT/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1SmqkFxFufo9YZPAHc5zHohOtU1TNQJ5G/view?usp=drive_link" },
-    { number: 27, png: "https://drive.google.com/file/d/1P7OGeUSs857BwyLy6QrlkN5yB2LQVx9D/view?usp=drive_link", mp4: "https://drive.google.com/file/d/16p3dAZxyS2xl-mtYQkEY9GUBtOaCPaiL/view?usp=drive_link" },
-    { number: 28, png: "https://drive.google.com/file/d/1GvlQIuW_hGTlQGSzOxBv1KngpURnLSAb/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1RqxsFxPQRMeF-VOQ-_wCSGkGptQTDbDy/view?usp=drive_link" },
-    { number: 29, png: "https://drive.google.com/file/d/1q2uxvVKyls1vlyTJ0GgiHAy_oEsTr9_G/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Xkls26uemw6TrWPKSSYt0nmita7mNbVQ/view?usp=drive_link" },
-    { number: 30, png: "https://drive.google.com/file/d/1_aSbTRuaaaHRs3NO0x6w9DjTqHlB2fI8/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1vYtZbdY51lbOqGjmSU1f9r122zct7GRe/view?usp=drive_link" },
-    { number: 31, png: "https://drive.google.com/file/d/1rf7nurb6zficoX3xNDpOXh-of_DiqzdZ/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1aZES6nztEv9w1hop53_sX1De7B1j673t/view?usp=drive_link" },
-    { number: 32, png: "https://drive.google.com/file/d/1EP7-LVnPdAXazbu9iQFL23fhGWqGaRTU/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1nWF_Z_rEMle45dPYd5iWeWGcxGXqAzGo/view?usp=drive_link" },
-    { number: 33, png: "https://drive.google.com/file/d/1PWTHsde7YVXDCyTLN5kUIvIUL8D0qISl/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1cCaOIGgVu9YLjasOChikVJTC3Uifpw0f/view?usp=drive_link" },
-    { number: 34, png: "https://drive.google.com/file/d/1z6VmIEcAVsF_QEqjfVTJRzbHIuV82RlW/view?usp=drive_link", mp4: "https://drive.google.com/file/d/12mvy9fsEa-qOmbB10M74Lo_hU2JXWCqF/view?usp=drive_link" },
-    { number: 35, png: "https://drive.google.com/file/d/1_-7_V-e7o2xbK6W9L6MbnajoPRBY1pEQ/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1APqt5MdstKWluovHywtiGyN1xtg2swFp/view?usp=drive_link" },
-    { number: 36, png: "https://drive.google.com/file/d/1YlMiSgjehLI7i9WY17oY2Fu2k_xQiZr_/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1psr7dLJxJNV9P6R0ZLbBBLl8Xy6eglkS/view?usp=drive_link" },
-    { number: 37, png: "https://drive.google.com/file/d/18JCD_JK1nG2r1ORbrc9iPXLoL6hxRrBs/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1K2TxBqT0b9w4VurkhlWGl_e2FMEh2RdS/view?usp=drive_link" },
-    { number: 38, png: "https://drive.google.com/file/d/1ErD7Sm2BPN4-ir1x2BfqF4uoK-3o2S90/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1J4ODUmhq8g5PEYgEpWVehsMirBf7Yw8b/view?usp=drive_link" },
-    { number: 39, png: "https://drive.google.com/file/d/1NHmQ5dKmvGUau-SdzCU3AiUAqwiXE0HK/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1PN76F65S4cyHlWdqPGLEnPz1Uc_7wVfF/view?usp=drive_link" },
-    { number: 40, png: "https://drive.google.com/file/d/1rlLrt1KOeEe_vGj49uIgzQ3axrIb9REz/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1oqX6SU5GJsm6L-8uiJrqIfhZ9EeADQG7/view?usp=drive_link" },
-    { number: 41, png: "https://drive.google.com/file/d/1ymtZ7AEJe30BmVttLLEorr_bcnqKOcOw/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1uaIPEEGhaBj-X2_FJNW8K3-BEqLUhxRB/view?usp=drive_link" },
-    { number: 42, png: "https://drive.google.com/file/d/15sKSIwCn0u3wpXNtjotu9xf3U_uNyj61/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1rt1QaOR14IeRrYnKKgGY1XACKYMuMjcy/view?usp=drive_link" },
-    { number: 43, png: "https://drive.google.com/file/d/1WTj5TRdh1wy85eOgGc2Mq1DNiHDvvgRp/view?usp=drive_link", mp4: "https://drive.google.com/file/d/18-mEmG29-8A5RXgMMOMBIGboBVD99Dr_/view?usp=drive_link" },
-    { number: 44, png: "https://drive.google.com/file/d/1AcycJ_KAOn8NbIqgIA8qJ7o9iH3xvNgc/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1iJTBzrsw6wlq1kNIerHSKZ41ITp8jSop/view?usp=drive_link" },
-    { number: 45, png: "https://drive.google.com/file/d/1-TPbFef5jYHHokKT-scfEGpy14-D5UmD/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1no4xq7hWrZk9XOSsQuyGM5h-tivvoskj/view?usp=drive_link" },
-    { number: 46, png: "https://drive.google.com/file/d/1iE-d92mmuAj_W2VABWcy_PZy1IojOTzO/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1CJzbKnBjuM2ZYOVAzS6k68ivtl0msoFS/view?usp=drive_link" },
-    { number: 47, png: "https://drive.google.com/file/d/1FZMPboLO-mwTy1cgthtuBgQRlwngJp56/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Lf0wgNYYrkUmzRv4aGArlldqNloL7V5s/view?usp=drive_link" },
-    { number: 48, png: "https://drive.google.com/file/d/1Cfsf48PVYNRQaiOoUJ9WEjB5vgthFyzB/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1rXzcYXrWZaGvcxhm0psRmSvD_lJehPrs/view?usp=drive_link" },
-    { number: 49, png: "https://drive.google.com/file/d/1VzqZ3QS_iLQvLz-hXLNc1orkV0WVSyRo/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Q2mrNqXn3_QgvwnGrH2q7lt6G8X2orws/view?usp=drive_link" },
-    { number: 50, png: "https://drive.google.com/file/d/11nOUNw5A_2tUqobDueCZ-xI6Rh8Yp-R2/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1APp6a-oWDtSPmcGu8q6bVTQ2XBydWrJQ/view?usp=drive_link" },
-    { number: 51, png: "https://drive.google.com/file/d/1Iq4tC9PZjii-RLLfOPs1zbXtLPLB_APH/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1IU9fYHxWdKpqh76WB5lQ3pkJd3rPLckP/view?usp=drive_link" },
-    { number: 52, png: "https://drive.google.com/file/d/1SpJwMU1lm8tHpqi0YMWefwqlpzfxeO5p/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1otxLUqmOwGbmLfuuTTqHyIsXWxQm5AG8/view?usp=drive_link" },
-    { number: 53, png: "https://drive.google.com/file/d/17hv57wCrKo9Ba49ZY12YuHifc6zmEBaF/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1VkB2yX7SIMxlhXDZ22Ye-bpkptSp3Aml/view?usp=drive_link" },
-    { number: 54, png: "https://drive.google.com/file/d/1s_8OugPlqqe02iIOZiaQx8oU1evnCOVi/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1z9980WfDMGQE1wqHeFWxkYonSokzODYU/view?usp=drive_link" },
-    { number: 55, png: "https://drive.google.com/file/d/1C8JHyFD7_PH8LPWnhNS4FcXIGLCZBfJC/view?usp=drive_link", mp4: "https://drive.google.com/file/d/187KXK6Qzg5j7ZKLtjfEfmPgV5oz_n39C/view?usp=drive_link" },
-    { number: 56, png: "https://drive.google.com/file/d/1I4e3oLYi-1pR8ctFLIUM0mbAEYhZ_nY1/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1CjrZuEw5gt0JF4QwmpTFyw9-NJxifvQH/view?usp=drive_link" },
-    { number: 57, png: "https://drive.google.com/file/d/1k9nCCXn1NdBR-cWu2n1KCwbo6Sv3Nvh7/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1iATT3SCkQgS3rkpXSplAmKrVGX2pNNj8/view?usp=drive_link" },
-    { number: 58, png: "https://drive.google.com/file/d/1zo9cxmyprEiivbLdr69zF1M9NkaBva0b/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1HSNEbe-4ZH_v8NARfd5fc0Je18kcaqLU/view?usp=drive_link" },
-    { number: 59, png: "https://drive.google.com/file/d/1lu8g-Srjk6Q5IUF_Pxnr0Zh8avxeFqWk/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1EhMMfwl9zJnW_yBAwQE1sEKtvrZ0lwxL/view?usp=drive_link" },
-    { number: 60, png: "https://drive.google.com/file/d/1uM1Lp5QKFC3ZsSGYMwWZb8LLlcMqyEXZ/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1t1hw0v1DX0k2MMn5ukP8t4ON7cDzzYkO/view?usp=drive_link" },
-    { number: 61, png: "https://drive.google.com/file/d/1NDWMZ4T7t5yRlRMChASmEZy6iYClmmxu/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1MKEvnrYsFNxmdmAmtXib_3VCm7tFWA4l/view?usp=drive_link" },
-    { number: 62, png: "https://drive.google.com/file/d/1Si_NjjZyHgSAmppCYGlzurbdVrn0KPc5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/10ZD-AqUkNaZ9FXFYV98fMeIUYgB6KLV9/view?usp=drive_link" },
-    { number: 63, png: "https://drive.google.com/file/d/1qRte1ScAMPfg7H0zHhDa-Bnh3O6YQgPo/view?usp=drive_link", mp4: "https://drive.google.com/file/d/14VK20bRiHEnMZoLzEnCFJRi1L3LrVVP_/view?usp=drive_link" },
-    { number: 64, png: "https://drive.google.com/file/d/1wdGRT71bigfDPBOKpeDwL13HKJl0dHtd/view?usp=drive_link", mp4: "https://drive.google.com/file/d/10zzeUap3aSGU-oFtgPN81FqDKqg-6v4t/view?usp=drive_link" },
-    { number: 65, png: "https://drive.google.com/file/d/1cctAoOmqol2s7Oc0kCM4KWu-RgDYKS3P/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1xtQeSt73yK880IdVvDCIbNe5zKAr574O/view?usp=drive_link" },
-    { number: 66, png: "https://drive.google.com/file/d/1rO6TwrbfduoW_yp_eaCm6BIX19pprLM1/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1ZQ2LhYFrZ245yL8kwvXOw8SZmw8lvaHT/view?usp=drive_link" },
-    { number: 67, png: "https://drive.google.com/file/d/1aDCSDeCI0jdow01OJFOSh5EEZNqv7T8V/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1hFoFgt6js2qNZjo1lhtV_SImEEE9q_rw/view?usp=drive_link" },
-    { number: 68, png: "https://drive.google.com/file/d/1Z4rNhlJLHns2_hb-4uURFvw_QHJo1sOA/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1yvLdXYunPeVo2MQoPDlZ6aQI9q76aPhB/view?usp=drive_link" },
-    { number: 69, png: "https://drive.google.com/file/d/1J4iVB0wmizyBcG2hZ9HwdtO4hLb1UPbj/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1WOVRmwRRYB1PY7Gp-I-Su66OODK1x7N1/view?usp=drive_link" },
-    { number: 70, png: "https://drive.google.com/file/d/1FptBlZIPd7phThr_UN9LUDtxjiaDB80b/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1SFTA32LupDVRst5JJUycS9manK1DZYmW/view?usp=drive_link" },
-    { number: 71, png: "https://drive.google.com/file/d/1yRrNmfQVw4GFCup21SNmotdWqTXCnf9F/view?usp=drive_link", mp4: "https://drive.google.com/file/d/10Mi2Q1-0mexR8gQzdG3bVk0WdXrTXD5k/view?usp=drive_link" },
-    { number: 72, png: "https://drive.google.com/file/d/1o-4uWKlfPs7_KxlvLqWGKCoezruA2vuR/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1W3hVizTOknpOPwrwWjBIerOjDIjuTR1m/view?usp=drive_link" },
-    { number: 73, png: "https://drive.google.com/file/d/1sYNT-S6D5qixCGAQzKELPacl-8iLZBOM/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1nx2ZH45F9KN1Ph9j0UTj8eOblp80fkRU/view?usp=drive_link" },
-    { number: 74, png: "https://drive.google.com/file/d/1OkrbHSU6ZjHexaIP2HJ0mU121Xe8kOZ6/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1jyv_8o3ey_nsmteoXgD58sXa0IGQ8B1W/view?usp=drive_link" },
-    { number: 75, png: "https://drive.google.com/file/d/1VycPu9ieRn8bcQf83ab5FFdxaJLsh-O5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1N2txJcboFyugOI7lJvScRg4q4axG_JJ8/view?usp=drive_link" },
-    { number: 76, png: "https://drive.google.com/file/d/15DNBNNNyxWqltw8DOUuK05lrG41TgyzI/view?usp=drive_link", mp4: "https://drive.google.com/file/d/13YoLZtln1kavgOCjK4IcbBOrnuBQ9jwf/view?usp=drive_link" },
-    { number: 77, png: "https://drive.google.com/file/d/1FO9OM61MCHOlDZOIORoiOxQRjL1I7tq_/view?usp=drive_link", mp4: "https://drive.google.com/file/d/12rBLQuSMyiJTfeU0jcaIRCKlhfUpc5u1/view?usp=drive_link" },
-    { number: 78, png: "https://drive.google.com/file/d/13cRIsAzVYpPAmLwnVXdW84aEWN-p4t--/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1ZcJi3dF-FZ-CWbtxWK-1fmgo_K9AeVk1/view?usp=drive_link" },
-    { number: 79, png: "https://drive.google.com/file/d/1FbgD06jh8-royDNIDHYSarOfbsoiQv-5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1s_qetkjpx_Z9m6yhOEKEKEldPPgNJxiI/view?usp=drive_link" },
-    { number: 80, png: "https://drive.google.com/file/d/1xEYFYq7mkmv2bJrc1dh07B41u39LpB8t/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1MeMW4o9_EVI-fYzHy4m0Ydl901icqFLF/view?usp=drive_link" },
-    { number: 81, png: "https://drive.google.com/file/d/1c64FJ3NcejUVa8FQ2o4_PyTsdkNioth9/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1F0cwhdHvXF-NbVLCRfmf0-qXUV9sViER/view?usp=drive_link" },
-    { number: 82, png: "https://drive.google.com/file/d/10ddfOv-cTw-BaktzOeGnRloMNByVq9Bl/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Xv8C2Hl0MaYpv3oWUPRzSo1fJMlb7mXs/view?usp=drive_link" },
-    { number: 83, png: "https://drive.google.com/file/d/1rrO0eh5ff2onKUZ6meczOKRNQlWBg8FT/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1N9o5kt-tMzd3IkcnSjiiqavlOlbSP5tC/view?usp=drive_link" },
-    { number: 84, png: "https://drive.google.com/file/d/1CnOqGBvrRbzny0CPu2xdGUjjamI0KJE_/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1T1KwUwIA8rakxezg73ps4HAVl4SDuGSE/view?usp=drive_link" },
-    { number: 85, png: "https://drive.google.com/file/d/1zwU-3GGi-FKAYbfLmJhLDN7cmsHBd6KX/view?usp=drive_link", mp4: "https://drive.google.com/file/d/12bA3uM2U-LLCmVY07Ko5WfhatKsIP8h3/view?usp=drive_link" },
-    { number: 86, png: "https://drive.google.com/file/d/1hqrInrub2UME7uBuZ63SvmAkiWueOJ80/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1tk3bL6wW-1qBVHpxg3-o3W8RfB1Gbfyy/view?usp=drive_link" },
-    { number: 87, png: "https://drive.google.com/file/d/12Xji97F30hm4lAQ4UAaox-CSHMyTF44Q/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1fsC0vOvp7E_OwIfjaK-Rlrlybb4MIt7R/view?usp=drive_link" },
-    { number: 88, png: "https://drive.google.com/file/d/12yFwru00zryDdDA1qVZSz12HLxf4MnTR/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Lm4H45ioOv1TVLPo4PHoW4oykx5gGEsq/view?usp=drive_link" },
-    { number: 89, png: "https://drive.google.com/file/d/1T_amzqZX1ndSoREnlHGQaVtNXjx1uyVz/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1hw5qEZQTA21qtvg4eWTt3JHcXFui8fFz/view?usp=drive_link" },
-    { number: 90, png: "https://drive.google.com/file/d/1M7xT4TKaesRaIFuHVOlVA9gqP62cMz4r/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1q7WCNjVIhDKGs2BO10b3nBdRsL9Fduyf/view?usp=drive_link" },
-    { number: 91, png: "https://drive.google.com/file/d/1mYHOsBO1_cUg_BMc5qg2RQEkl4lcRBx-/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Vm5crhVz9QCCHgQDU9q8niZ1SiIy2vqN/view?usp=drive_link" },
-    { number: 92, png: "https://drive.google.com/file/d/18zrSb2xypnAKZzGqMeSEQ2vcunkameEk/view?usp=drive_link", mp4: "https://drive.google.com/file/d/184hbYaRu3vt4SrjRnxh3MlMp0W5XLD3E/view?usp=drive_link" },
-    { number: 93, png: "https://drive.google.com/file/d/10_oJ79MSOux0v8JMlT8NC4ZbYDJkuXIy/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1tOELid-7-uei_NbL8pyAuf91ZJ3rPPVi/view?usp=drive_link" }
+
+/* ==========================================
+   PNG VE MP4 DOSYA KİMLİKLERİ
+
+   Her satır bir eğitim sayfasını temsil eder.
+   İlk değer PNG, ikinci değer MP4 kimliğidir.
+   ========================================== */
+
+const lessonFiles = [
+
+/* 01 */ ["1B1mr2oWFFCL2vzemLzZwfOCTzba_f-mV","1vldE0eXovbLoKbDxe_-2EwX9r6PaeLc-"],
+/* 02 */ ["19ZsiMquzXd2lquFZFrccCPEKDC8doksw","1xlQc_Z6aDVicKFqCGnRGjALP1TbToIst"],
+/* 03 */ ["12WCKYrh6IoEiYTsyCxJKFvd614SOnuzg","1VNTpirIwFiwq-Ww1RXSR8FCBFN389z2o"],
+/* 04 */ ["1BpQe311K2nvMl0rYHk1xSQ2avABokHWH","1XhsQoJOM4xW0484_MZhjEf1lOeYlYAYR"],
+/* 05 */ ["1rUXEDf8wHuuRq9Rg6SeRiitzTbSnA1UO","14dcQAS8hRCOOKNpeR_uBbePzeZNXJgDd"],
+/* 06 */ ["1Gbcz-W5_FpMxne7u295Y_rCD5T0yAKRA","1uCrAn98BET3x7_YqJCx4TCZNHcPYjI0j"],
+/* 07 */ ["1NcXLK5n6YV5278lGmhuMpbhE3ZhNwnj0","1FoxP3-PNP_TA8xyMWDv-TUfAwcTsm81v"],
+/* 08 */ ["1P9kXuMFBYQq9Sp2h1C-NCKyTEsN1LBlV","18j_AK_mK0TONi5RPIKb9_DWwkUafiHAg"],
+/* 09 */ ["1j3RiNIizitb9kKA10nLOqoYT45CS-yKB","1CL3EVp47cd1n-xtjtbyLAGW8pIzSxAci"],
+/* 10 */ ["1vsWPi4r7Xn2L7zuNzM17eJ1pfDSWdbn0","1mUFAh2btTZ5i7Fd-DgZBHZUOI5wuHaQN"],
+/* 11 */ ["1kfC0JUU_6KxdDg-2pux4225m32hfAyaX","1cPDRNk5GOxhP7t_VzcsK-BfmIy3s05p1"],
+/* 12 */ ["1Aql3JHSBjkOuOM0sgJRJSelufTOM-XTF","1Wv12BNjcpoc9D3Sz4Y4N0M_ZSAcdSgHG"],
+/* 13 */ ["1w1dMxl50iMqgn1GBz-f8TYgD5hLhzvWk","1o3GAVvnrBQdJ15OJRYMLOHPwO3rUs8GG"],
+/* 14 */ ["1xBGMsIHvMfrf2U-LEwxeL4O09GyI6krz","16v3aXqTAgkrVkhNXOhafwJNQKmfROrWd"],
+/* 15 */ ["1-hTh_-G-US7e1DfaGxFx3J_L6wBZZGek","1QfDy-2IXMVAYhQ5ZAC31MSddQwWY6NRP"],
+/* 16 */ ["1wqeFMbgcyMZMV2eSTuF12mDlEw3SYeBL","1aPgf-fN4859m5RJmoH3jFVwTGGa95JE_"],
+/* 17 */ ["1VCYieLYMa5VSeQPTUvwcvIRbE3XYXIm2","1mdzLNS7yUeTXxVFEFQp_au837kxGJJGj"],
+/* 18 */ ["17_yS_T0o0d63i74Naa1aEtGtyveKBd6P","1DKoq89vt3ErPjZBCuMjd7zxlYPl606rv"],
+/* 19 */ ["1sURo1AEPeT9SPjDDP09hLSMbluNCK2j5","1ozCQdb1d-T1T2BY-UR5E92l9r-H852DC"],
+/* 20 */ ["1eNJaJdqqXEjxWKBHahsD9gEUbS82Hp-T","1n4UxQ9JOnUou8-o3U1edi0qki-HctKZf"],
+/* 21 */ ["1awalKZkV6XsMLIvwNRDQnNfqGON1VqBM","1s0VhccCpfMlepxrZSxLsm-BFWQb5CKN2"],
+/* 22 */ ["1grgnillSbXWmEx6ZMMY58hprGSdqkFs5","1MQB1CdagHbAB4O1DdxZwz6g57SXK2NZU"],
+/* 23 */ ["1Ex_IAxdQGaz_2Q1mdm_hcp_3549kKzLM","1iK7V2QmMLFc8tCwtv5VbMzNO7Ybs-tUi"],
+/* 24 */ ["1VU13E4JrnI80PeP0MvydqwFnE4jM_T83","17MFCfh_8qJC9Zo1jAmwPjoO2tDhLfV3I"],
+/* 25 */ ["1nAw9_M4KlHG1aJiQmUhoA7Ed-viT-xhg","1QI_NiNuDXXx9fKYWo9LrVQMfP12XJfT4"],
+/* 26 */ ["1doe4mY0I4oHsQElsbQeow3oy_c_5FoBT","1SmqkFxFufo9YZPAHc5zHohOtU1TNQJ5G"],
+/* 27 */ ["1P7OGeUSs857BwyLy6QrlkN5yB2LQVx9D","16p3dAZxyS2xl-mtYQkEY9GUBtOaCPaiL"],
+/* 28 */ ["1GvlQIuW_hGTlQGSzOxBv1KngpURnLSAb","1RqxsFxPQRMeF-VOQ-_wCSGkGptQTDbDy"],
+/* 29 */ ["1q2uxvVKyls1vlyTJ0GgiHAy_oEsTr9_G","1Xkls26uemw6TrWPKSSYt0nmita7mNbVQ"],
+/* 30 */ ["1_aSbTRuaaaHRs3NO0x6w9DjTqHlB2fI8","1vYtZbdY51lbOqGjmSU1f9r122zct7GRe"],
+/* 31 */ ["1rf7nurb6zficoX3xNDpOXh-of_DiqzdZ","1aZES6nztEv9w1hop53_sX1De7B1j673t"],
+/* 32 */ ["1EP7-LVnPdAXazbu9iQFL23fhGWqGaRTU","1nWF_Z_rEMle45dPYd5iWeWGcxGXqAzGo"],
+/* 33 */ ["1PWTHsde7YVXDCyTLN5kUIvIUL8D0qISl","1cCaOIGgVu9YLjasOChikVJTC3Uifpw0f"],
+/* 34 */ ["1z6VmIEcAVsF_QEqjfVTJRzbHIuV82RlW","12mvy9fsEa-qOmbB10M74Lo_hU2JXWCqF"],
+/* 35 */ ["1_-7_V-e7o2xbK6W9L6MbnajoPRBY1pEQ","1APqt5MdstKWluovHywtiGyN1xtg2swFp"],
+/* 36 */ ["1YlMiSgjehLI7i9WY17oY2Fu2k_xQiZr_","1psr7dLJxJNV9P6R0ZLbBBLl8Xy6eglkS"],
+/* 37 */ ["18JCD_JK1nG2r1ORbrc9iPXLoL6hxRrBs","1K2TxBqT0b9w4VurkhlWGl_e2FMEh2RdS"],
+/* 38 */ ["1ErD7Sm2BPN4-ir1x2BfqF4uoK-3o2S90","1J4ODUmhq8g5PEYgEpWVehsMirBf7Yw8b"],
+/* 39 */ ["1NHmQ5dKmvGUau-SdzCU3AiUAqwiXE0HK","1PN76F65S4cyHlWdqPGLEnPz1Uc_7wVfF"],
+/* 40 */ ["1rlLrt1KOeEe_vGj49uIgzQ3axrIb9REz","1oqX6SU5GJsm6L-8uiJrqIfhZ9EeADQG7"],
+/* 41 */ ["1ymtZ7AEJe30BmVttLLEorr_bcnqKOcOw","1uaIPEEGhaBj-X2_FJNW8K3-BEqLUhxRB"],
+/* 42 */ ["15sKSIwCn0u3wpXNtjotu9xf3U_uNyj61","1rt1QaOR14IeRrYnKKgGY1XACKYMuMjcy"],
+/* 43 */ ["1WTj5TRdh1wy85eOgGc2Mq1DNiHDvvgRp","18-mEmG29-8A5RXgMMOMBIGboBVD99Dr_"],
+/* 44 */ ["1AcycJ_KAOn8NbIqgIA8qJ7o9iH3xvNgc","1iJTBzrsw6wlq1kNIerHSKZ41ITp8jSop"],
+/* 45 */ ["1-TPbFef5jYHHokKT-scfEGpy14-D5UmD","1no4xq7hWrZk9XOSsQuyGM5h-tivvoskj"],
+/* 46 */ ["1iE-d92mmuAj_W2VABWcy_PZy1IojOTzO","1CJzbKnBjuM2ZYOVAzS6k68ivtl0msoFS"],
+/* 47 */ ["1FZMPboLO-mwTy1cgthtuBgQRlwngJp56","1Lf0wgNYYrkUmzRv4aGArlldqNloL7V5s"],
+/* 48 */ ["1Cfsf48PVYNRQaiOoUJ9WEjB5vgthFyzB","1rXzcYXrWZaGvcxhm0psRmSvD_lJehPrs"],
+/* 49 */ ["1VzqZ3QS_iLQvLz-hXLNc1orkV0WVSyRo","1Q2mrNqXn3_QgvwnGrH2q7lt6G8X2orws"],
+/* 50 */ ["11nOUNw5A_2tUqobDueCZ-xI6Rh8Yp-R2","1APp6a-oWDtSPmcGu8q6bVTQ2XBydWrJQ"],
+/* 51 */ ["1Iq4tC9PZjii-RLLfOPs1zbXtLPLB_APH","1IU9fYHxWdKpqh76WB5lQ3pkJd3rPLckP"],
+/* 52 */ ["1SpJwMU1lm8tHpqi0YMWefwqlpzfxeO5p","1otxLUqmOwGbmLfuuTTqHyIsXWxQm5AG8"],
+/* 53 */ ["17hv57wCrKo9Ba49ZY12YuHifc6zmEBaF","1VkB2yX7SIMxlhXDZ22Ye-bpkptSp3Aml"],
+/* 54 */ ["1s_8OugPlqqe02iIOZiaQx8oU1evnCOVi","1z9980WfDMGQE1wqHeFWxkYonSokzODYU"],
+/* 55 */ ["1C8JHyFD7_PH8LPWnhNS4FcXIGLCZBfJC","187KXK6Qzg5j7ZKLtjfEfmPgV5oz_n39C"],
+/* 56 */ ["1I4e3oLYi-1pR8ctFLIUM0mbAEYhZ_nY1","1CjrZuEw5gt0JF4QwmpTFyw9-NJxifvQH"],
+/* 57 */ ["1k9nCCXn1NdBR-cWu2n1KCwbo6Sv3Nvh7","1iATT3SCkQgS3rkpXSplAmKrVGX2pNNj8"],
+/* 58 */ ["1zo9cxmyprEiivbLdr69zF1M9NkaBva0b","1HSNEbe-4ZH_v8NARfd5fc0Je18kcaqLU"],
+/* 59 */ ["1lu8g-Srjk6Q5IUF_Pxnr0Zh8avxeFqWk","1EhMMfwl9zJnW_yBAwQE1sEKtvrZ0lwxL"],
+/* 60 */ ["1uM1Lp5QKFC3ZsSGYMwWZb8LLlcMqyEXZ","1t1hw0v1DX0k2MMn5ukP8t4ON7cDzzYkO"],
+/* 61 */ ["1NDWMZ4T7t5yRlRMChASmEZy6iYClmmxu","1MKEvnrYsFNxmdmAmtXib_3VCm7tFWA4l"],
+/* 62 */ ["1Si_NjjZyHgSAmppCYGlzurbdVrn0KPc5","10ZD-AqUkNaZ9FXFYV98fMeIUYgB6KLV9"],
+/* 63 */ ["1qRte1ScAMPfg7H0zHhDa-Bnh3O6YQgPo","14VK20bRiHEnMZoLzEnCFJRi1L3LrVVP_"],
+/* 64 */ ["1wdGRT71bigfDPBOKpeDwL13HKJl0dHtd","10zzeUap3aSGU-oFtgPN81FqDKqg-6v4t"],
+/* 65 */ ["1cctAoOmqol2s7Oc0kCM4KWu-RgDYKS3P","1xtQeSt73yK880IdVvDCIbNe5zKAr574O"],
+/* 66 */ ["1rO6TwrbfduoW_yp_eaCm6BIX19pprLM1","1ZQ2LhYFrZ245yL8kwvXOw8SZmw8lvaHT"],
+/* 67 */ ["1aDCSDeCI0jdow01OJFOSh5EEZNqv7T8V","1hFoFgt6js2qNZjo1lhtV_SImEEE9q_rw"],
+/* 68 */ ["1Z4rNhlJLHns2_hb-4uURFvw_QHJo1sOA","1yvLdXYunPeVo2MQoPDlZ6aQI9q76aPhB"],
+/* 69 */ ["1J4iVB0wmizyBcG2hZ9HwdtO4hLb1UPbj","1WOVRmwRRYB1PY7Gp-I-Su66OODK1x7N1"],
+/* 70 */ ["1FptBlZIPd7phThr_UN9LUDtxjiaDB80b","1SFTA32LupDVRst5JJUycS9manK1DZYmW"],
+/* 71 */ ["1yRrNmfQVw4GFCup21SNmotdWqTXCnf9F","10Mi2Q1-0mexR8gQzdG3bVk0WdXrTXD5k"],
+/* 72 */ ["1o-4uWKlfPs7_KxlvLqWGKCoezruA2vuR","1W3hVizTOknpOPwrwWjBIerOjDIjuTR1m"],
+/* 73 */ ["1sYNT-S6D5qixCGAQzKELPacl-8iLZBOM","1nx2ZH45F9KN1Ph9j0UTj8eOblp80fkRU"],
+/* 74 */ ["1OkrbHSU6ZjHexaIP2HJ0mU121Xe8kOZ6","1jyv_8o3ey_nsmteoXgD58sXa0IGQ8B1W"],
+/* 75 */ ["1VycPu9ieRn8bcQf83ab5FFdxaJLsh-O5","1N2txJcboFyugOI7lJvScRg4q4axG_JJ8"],
+/* 76 */ ["15DNBNNNyxWqltw8DOUuK05lrG41TgyzI","13YoLZtln1kavgOCjK4IcbBOrnuBQ9jwf"],
+/* 77 */ ["1FO9OM61MCHOlDZOIORoiOxQRjL1I7tq_","12rBLQuSMyiJTfeU0jcaIRCKlhfUpc5u1"],
+/* 78 */ ["13cRIsAzVYpPAmLwnVXdW84aEWN-p4t--","1ZcJi3dF-FZ-CWbtxWK-1fmgo_K9AeVk1"],
+/* 79 */ ["1FbgD06jh8-royDNIDHYSarOfbsoiQv-5","1s_qetkjpx_Z9m6yhOEKEKEldPPgNJxiI"],
+/* 80 */ ["1xEYFYq7mkmv2bJrc1dh07B41u39LpB8t","1MeMW4o9_EVI-fYzHy4m0Ydl901icqFLF"],
+/* 81 */ ["1c64FJ3NcejUVa8FQ2o4_PyTsdkNioth9","1F0cwhdHvXF-NbVLCRfmf0-qXUV9sViER"],
+/* 82 */ ["10ddfOv-cTw-BaktzOeGnRloMNByVq9Bl","1Xv8C2Hl0MaYpv3oWUPRzSo1fJMlb7mXs"],
+/* 83 */ ["1rrO0eh5ff2onKUZ6meczOKRNQlWBg8FT","1N9o5kt-tMzd3IkcnSjiiqavlOlbSP5tC"],
+/* 84 */ ["1CnOqGBvrRbzny0CPu2xdGUjjamI0KJE_","1T1KwUwIA8rakxezg73ps4HAVl4SDuGSE"],
+/* 85 */ ["1zwU-3GGi-FKAYbfLmJhLDN7cmsHBd6KX","12bA3uM2U-LLCmVY07Ko5WfhatKsIP8h3"],
+/* 86 */ ["1hqrInrub2UME7uBuZ63SvmAkiWueOJ80","1tk3bL6wW-1qBVHpxg3-o3W8RfB1Gbfyy"],
+/* 87 */ ["12Xji97F30hm4lAQ4UAaox-CSHMyTF44Q","1fsC0vOvp7E_OwIfjaK-Rlrlybb4MIt7R"],
+/* 88 */ ["12yFwru00zryDdDA1qVZSz12HLxf4MnTR","1Lm4H45ioOv1TVLPo4PHoW4oykx5gGEsq"],
+/* 89 */ ["1T_amzqZX1ndSoREnlHGQaVtNXjx1uyVz","1hw5qEZQTA21qtvg4eWTt3JHcXFui8fFz"],
+/* 90 */ ["1M7xT4TKaesRaIFuHVOlVA9gqP62cMz4r","1q7WCNjVIhDKGs2BO10b3nBdRsL9Fduyf"],
+/* 91 */ ["1mYHOsBO1_cUg_BMc5qg2RQEkl4lcRBx-","1Vm5crhVz9QCCHgQDU9q8niZ1SiIy2vqN"],
+/* 92 */ ["18zrSb2xypnAKZzGqMeSEQ2vcunkameEk","184hbYaRu3vt4SrjRnxh3MlMp0W5XLD3E"],
+/* 93 */ ["10_oJ79MSOux0v8JMlT8NC4ZbYDJkuXIy","1tOELid-7-uei_NbL8pyAuf91ZJ3rPPVi"]
+
 ];
 
-/* TEST BAĞLANTILARI: Test HTML dosyaları GitHub Pages üzerinde
-   index.html ile aynı seviyedeki TST klasöründe bulunmalıdır.
-   Google Drive önizlemesi etkileşimli HTML testlerini çalıştırmaz. */
-const quizLinks = {
-  4: "TST/04.html",
-  5: "TST/05.html",
-  6: "TST/06.html",
-  7: "TST/07.html",
-  8: "TST/08.html",
-  9: "TST/09.html",
-  10: "TST/10.html",
-  11: "TST/11.html",
-  12: "TST/12.html",
-  13: "TST/13.html",
-  14: "TST/14.html",
-  15: "TST/15.html",
-  16: "TST/16.html",
-  17: "TST/17.html",
-  18: "TST/18.html",
-  19: "TST/19.html",
-  20: "TST/20.html",
-  21: "TST/21.html",
-  22: "TST/22.html",
-  23: "TST/23.html",
-  24: "TST/24.html",
-  25: "TST/25.html",
-  26: "TST/26.html",
-  27: "TST/27.html",
-  28: "TST/28.html",
-  29: "TST/29.html",
-  30: "TST/30.html",
-  31: "TST/31.html",
-  32: "TST/32.html",
-  33: "TST/33.html",
-  34: "TST/34.html",
-  35: "TST/35.html",
-  36: "TST/36.html",
-  37: "TST/37.html",
-  38: "TST/38.html",
-  39: "TST/39.html",
-  40: "TST/40.html",
-  41: "TST/41.html",
-  42: "TST/42.html",
-  43: "TST/43.html",
-  44: "TST/44.html",
-  45: "TST/45.html",
-  46: "TST/46.html",
-  47: "TST/47.html",
-  48: "TST/48.html",
-  49: "TST/49.html",
-  50: "TST/50.html",
-  51: "TST/51.html",
-  52: "TST/52.html",
-  53: "TST/53.html",
-  54: "TST/54.html",
-  55: "TST/55.html",
-  56: "TST/56.html",
-  57: "TST/57.html",
-  58: "TST/58.html",
-  59: "TST/59.html",
-  60: "TST/60.html",
-  61: "TST/61.html",
-  62: "TST/62.html",
-  63: "TST/63.html",
-  64: "TST/64.html",
-  65: "TST/65.html",
-  66: "TST/66.html",
-  67: "TST/67.html",
-  68: "TST/68.html",
-  69: "TST/69.html",
-  70: "TST/70.html",
-  71: "TST/71.html",
-  72: "TST/72.html",
-  73: "TST/73.html",
-  74: "TST/74.html",
-  75: "TST/75.html",
-  76: "TST/76.html",
-  77: "TST/77.html",
-  78: "TST/78.html",
-  79: "TST/79.html",
-  80: "TST/80.html",
-  81: "TST/81.html",
-  82: "TST/82.html",
-  83: "TST/83.html",
-  84: "TST/84.html",
-  85: "TST/85.html",
-  86: "TST/86.html",
-  87: "TST/87.html",
-  88: "TST/88.html",
-  89: "TST/89.html",
-  90: "TST/90.html",
-  91: "TST/91.html",
-  92: "TST/92.html"
-};
+const lessons = lessonFiles.map(function(files, index) {
+  return {
+    number: index + 1,
+    png: files[0],
+    mp4: files[1]
+  };
+});
+
+/* ==========================================
+   EĞİTİM DURUMU
+   ========================================== */
+
+const STORAGE_KEY = 'EIA649C_Training_Progress_v1';
+
 const quizDone = new Set();
+
 let view = 'slide';
 let quizLoadedUrl = '';
 let currentSlide = 0;
 let imageRequest = 0;
+let resumeState = null;
+let isPaused = false;
+let sessionActive = false;
+let storageAvailable = true;
+
 const slideImage = document.getElementById('slideImage');
 const slideFallback = document.getElementById('slideFallback');
 const videoFrame = document.getElementById('videoFrame');
@@ -304,137 +742,785 @@ const quizFrame = document.getElementById('quizFrame');
 const quizError = document.getElementById('quizError');
 const presentation = document.getElementById('presentation');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
+const resumeOverlay = document.getElementById('resumeOverlay');
 
-function driveId(url) {
-  const match = url.match(/\/file\/d\/([^/?#]+)/) || url.match(/[?&]id=([^&#]+)/);
-  return match ? match[1] : null;
+/* ==========================================
+   BAĞLANTI FONKSİYONLARI
+   ========================================== */
+
+function previewUrl(id) {
+  return 'https://drive.google.com/file/d/' +
+         encodeURIComponent(id) + '/preview';
 }
-function previewUrl(id) { return 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview'; }
-function imageUrl(id) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600'; }
+
+function imageUrl(id) {
+  return 'https://drive.google.com/thumbnail?id=' +
+         encodeURIComponent(id) + '&sz=w1600';
+}
+
 function quizUrl(number) {
-  const raw = quizLinks[number];
-  if (!raw || raw.includes('linkini ekle')) return String(number).padStart(2,'0') + '.html';
-  return raw;
+  return 'TST/' + String(number).padStart(2,'0') + '.html';
 }
-function showQuiz() {
+
+function hasQuiz(number) {
+  return number >= 4 && number <= 92;
+}
+
+/* ==========================================
+   İLERLEME KAYDETME VE OKUMA
+   ========================================== */
+
+function saveProgress() {
+
+  if (!sessionActive || isPaused) return false;
+
+  const state = {
+    version: 1,
+    page: lessons[currentSlide].number,
+    view: view,
+    completedQuizzes: Array.from(quizDone),
+    savedAt: new Date().toISOString()
+  };
+
+  resumeState = state;
+
+  try {
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(state)
+    );
+
+    storageAvailable = true;
+
+    document.getElementById('saveStatus').textContent =
+      '✓ İlerlemeniz kaydedildi';
+
+    return true;
+
+  } catch (error) {
+
+    storageAvailable = false;
+
+    document.getElementById('saveStatus').textContent =
+      'İlerlemeniz tarayıcıya kaydedilemedi.';
+
+    return false;
+
+  }
+
+}
+
+function loadProgress() {
+
+  try {
+
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    if (!raw) return null;
+
+    const state = JSON.parse(raw);
+
+    if (
+      !state ||
+      state.version !== 1 ||
+      !Number.isInteger(state.page) ||
+      state.page < 1 ||
+      state.page > lessons.length
+    ) {
+      return null;
+    }
+
+    state.view =
+      state.view === 'quiz' && hasQuiz(state.page)
+      ? 'quiz'
+      : 'slide';
+
+    state.completedQuizzes =
+      Array.isArray(state.completedQuizzes)
+      ? state.completedQuizzes.filter(function(number) {
+          return Number.isInteger(number) && hasQuiz(number);
+        })
+      : [];
+
+    return state;
+
+  } catch (error) {
+
+    return null;
+
+  }
+
+}
+
+function updateProgress() {
+
   const number = lessons[currentSlide].number;
+  const percent = number / lessons.length * 100;
+
+  document.getElementById('progressFill').style.width =
+    percent + '%';
+
+  document.getElementById('progressText').textContent =
+    'Sayfa konumu: %' +
+    percent.toLocaleString('tr-TR',{
+      maximumFractionDigits: 1
+    }) +
+    ' | Tamamlanan test: ' + quizDone.size + ' / 89';
+
+}
+
+/* ==========================================
+   TEST EKRANI
+   ========================================== */
+
+function showQuiz() {
+
+  const number = lessons[currentSlide].number;
+
   view = 'quiz';
+
+  ++imageRequest;
+
+  videoFrame.src = 'about:blank';
+
   presentation.style.display = 'none';
   quizPanel.style.display = 'block';
   quizError.style.display = 'none';
-  quizLoadedUrl = new URL(quizUrl(number), location.href).href;
+
+  quizLoadedUrl =
+    new URL(quizUrl(number),location.href).href;
+
+  quizFrame.style.height = '650px';
   quizFrame.src = quizLoadedUrl;
+
   counter.textContent = 'Sayfa ' + number + ' — Test';
+
   prev.disabled = false;
   next.disabled = !quizDone.has(number);
+
   next.textContent = 'Sonraki Sayfa ▶';
+
   fullscreenBtn.disabled = true;
+
+  updateProgress();
+  saveProgress();
+
   window.scrollTo(0,0);
+
 }
-window.addEventListener('message', function(event) {
-  if (view !== 'quiz' || event.source !== quizFrame.contentWindow) return;
+
+/* TEST SAYFALARINDAN GELEN MESAJLAR */
+
+window.addEventListener('message',function(event) {
+
+  if (
+    isPaused ||
+    !sessionActive ||
+    view !== 'quiz' ||
+    event.source !== quizFrame.contentWindow
+  ) return;
+
   let expected;
-  try { expected = new URL(quizLoadedUrl).origin; } catch { return; }
-  if (event.origin !== expected || !event.data || typeof event.data !== 'object') return;
+
+  try {
+    expected = new URL(quizLoadedUrl).origin;
+  } catch {
+    return;
+  }
+
+  if (
+    event.origin !== expected ||
+    !event.data ||
+    typeof event.data !== 'object'
+  ) return;
+
   const number = lessons[currentSlide].number;
+
   if (event.data.page !== number) return;
+
   if (event.data.type === 'quiz-completed') {
+
     quizDone.add(number);
     next.disabled = false;
+
+    updateProgress();
+    saveProgress();
+
   }
-  if (event.data.type === 'quiz-next-request' && quizDone.has(number)) {
+
+  if (
+    event.data.type === 'quiz-next-request' &&
+    quizDone.has(number)
+  ) {
+
     changeSlide(1);
+
   }
+
   if (event.data.type === 'quiz-changed') {
+
     quizDone.delete(number);
     next.disabled = true;
+
+    updateProgress();
+    saveProgress();
+
   }
-  if (event.data.type === 'quiz-height' && Number.isFinite(event.data.height)) {
-    quizFrame.style.height = Math.max(450, Math.min(5000,event.data.height+20)) + 'px';
+
+  if (
+    event.data.type === 'quiz-height' &&
+    Number.isFinite(event.data.height)
+  ) {
+
+    quizFrame.style.height =
+      Math.max(
+        450,
+        Math.min(5000,event.data.height + 20)
+      ) + 'px';
+
   }
+
 });
+
+/* ==========================================
+   SLAYT EKRANI
+   ========================================== */
+
 function showSlide() {
+
   view = 'slide';
+
   quizFrame.src = 'about:blank';
+  quizLoadedUrl = '';
+
   quizPanel.style.display = 'none';
   presentation.style.display = '';
+
   fullscreenBtn.disabled = false;
   next.textContent = 'Sonraki ▶';
+
   const lesson = lessons[currentSlide];
   const request = ++imageRequest;
-  const pngId = driveId(lesson.png);
-  const mp4Id = driveId(lesson.mp4);
+
+  const pngId = lesson.png;
+  const mp4Id = lesson.mp4;
+
   slideImage.onload = null;
   slideImage.onerror = null;
+
   slideImage.removeAttribute('src');
   slideFallback.removeAttribute('src');
+
   slideFallback.style.display = 'none';
   imageMissing.style.display = 'none';
+
   if (!pngId) {
+
     slideImage.style.display = 'none';
-    imageMissing.textContent = lesson.number + ' nolu PNG dosyasının linki henüz eklenmedi.';
+
+    imageMissing.textContent =
+      lesson.number + ' nolu PNG dosyasının linki henüz eklenmedi.';
+
     imageMissing.style.display = 'flex';
+
   } else {
+
     slideImage.style.display = 'block';
-    slideImage.onload = function () {
+
+    slideImage.onload = function() {
+
       if (request !== imageRequest) return;
+
       slideImage.style.display = 'block';
       slideFallback.style.display = 'none';
+
     };
-    slideImage.onerror = function () {
+
+    slideImage.onerror = function() {
+
       if (request !== imageRequest) return;
+
       slideImage.style.display = 'none';
       slideFallback.style.display = 'block';
       slideFallback.src = previewUrl(pngId);
+
     };
+
     slideImage.src = imageUrl(pngId);
+
   }
+
   videoFrame.src = 'about:blank';
   videoMissing.style.display = 'none';
+
   if (!mp4Id) {
+
     videoFrame.style.display = 'none';
-    videoMissing.textContent = lesson.number + ' nolu MP4 dosyasının linki henüz eklenmedi.';
+
+    videoMissing.textContent =
+      lesson.number + ' nolu MP4 dosyasının linki henüz eklenmedi.';
+
     videoMissing.style.display = 'flex';
+
   } else {
+
     videoFrame.style.display = 'block';
     videoFrame.src = previewUrl(mp4Id);
+
   }
-  counter.textContent = 'Sayfa ' + lesson.number + ' / ' + lessons.length;
+
+  counter.textContent =
+    'Sayfa ' + lesson.number + ' / ' + lessons.length;
+
   prev.disabled = currentSlide === 0;
   next.disabled = currentSlide === lessons.length - 1;
+
+  updateProgress();
+  saveProgress();
+
 }
+
+/* ==========================================
+   SAYFA GEÇİŞLERİ
+   ========================================== */
+
 function changeSlide(direction) {
+
+  if (isPaused || !sessionActive) return;
+
   if (direction < 0) {
-    if (view === 'quiz') { showSlide(); return; }
+
+    if (view === 'quiz') {
+
+      showSlide();
+      return;
+
+    }
+
     if (currentSlide === 0) return;
-    const previousNumber = lessons[currentSlide-1].number;
+
     currentSlide--;
-    if (previousNumber >= 4 && previousNumber <= 92) showQuiz();
-    else showSlide();
+
+    const previousNumber = lessons[currentSlide].number;
+
+    if (hasQuiz(previousNumber)) {
+
+      showQuiz();
+
+    } else {
+
+      showSlide();
+
+    }
+
     return;
+
   }
+
   if (currentSlide === lessons.length - 1) return;
+
   const number = lessons[currentSlide].number;
-  if (view === 'slide' && number >= 4 && number <= 92) {
+
+  if (view === 'slide' && hasQuiz(number)) {
+
     showQuiz();
     return;
+
   }
+
   if (view === 'quiz' && !quizDone.has(number)) return;
+
   currentSlide++;
+
   showSlide();
+  window.scrollTo(0,0);
+
 }
+
+/* ==========================================
+   ARA VERME VE DEVAM ETME
+   ========================================== */
+
+function canResumeNext(state) {
+
+  if (state.page >= lessons.length) return false;
+
+  if (!hasQuiz(state.page)) return true;
+
+  return state.completedQuizzes.includes(state.page);
+
+}
+
+function openResumeScreen(pausedNow, savedSuccessfully) {
+
+  if (!resumeState) return;
+
+  const state = resumeState;
+  const number = state.page;
+  const percent = number / lessons.length * 100;
+  const completed = state.completedQuizzes.includes(number);
+
+  isPaused = true;
+
+  document.querySelector('main').inert = true;
+
+  document.getElementById('resumeTitle').textContent =
+    pausedNow ? 'Eğitime Ara Verdiniz' : 'Eğitime Hoş Geldiniz';
+
+  document.getElementById('resumeMessage').textContent =
+    savedSuccessfully
+    ? (
+        pausedNow
+        ? 'İlerlemeniz kaydedildi. Tarayıcıyı güvenle kapatabilirsiniz.'
+        : 'Önceki eğitim oturumunuz kaydedildi.'
+      )
+    : 'İlerlemeniz kalıcı olarak kaydedilemedi. Bu ekranı kapatmadan eğitime devam edebilirsiniz.';
+
+  document.getElementById('resumePage').textContent =
+    number + ' / ' + lessons.length;
+
+  let stageText;
+
+  if (hasQuiz(number)) {
+
+    if (completed) {
+
+      stageText = '✓ Sayfa ' + number +
+                  ' değerlendirme testi tamamlandı.';
+
+    } else if (state.view === 'quiz') {
+
+      stageText = 'Sayfa ' + number +
+                  ' değerlendirme testi henüz tamamlanmadı.';
+
+    } else {
+
+      stageText = 'Sayfa ' + number +
+                  ' anlatım aşamasında ara verildi.';
+
+    }
+
+  } else {
+
+    stageText = 'Son görüntülenen eğitim sayfası.';
+
+  }
+
+  document.getElementById('resumeStage').textContent =
+    stageText;
+
+  document.getElementById('resumeProgress').style.width =
+    percent + '%';
+
+  document.getElementById('resumePercent').textContent =
+    'Sayfa konumu: %' +
+    percent.toLocaleString('tr-TR',{
+      maximumFractionDigits: 1
+    });
+
+  const savedDate = new Date(state.savedAt);
+
+  document.getElementById('resumeDate').textContent =
+    Number.isNaN(savedDate.getTime())
+      ? ''
+      : 'Son kayıt: ' + savedDate.toLocaleString('tr-TR');
+
+  const resumeNextBtn =
+    document.getElementById('resumeNextBtn');
+
+  resumeNextBtn.textContent =
+    (number + 1) + '. sayfadan devam et ▶';
+
+  resumeNextBtn.style.display =
+    canResumeNext(state) ? 'block' : 'none';
+
+  const resumeCurrentBtn =
+    document.getElementById('resumeCurrentBtn');
+
+  const resumeReviewBtn =
+    document.getElementById('resumeReviewBtn');
+
+  if (state.view === 'quiz') {
+
+    resumeCurrentBtn.textContent =
+      number + '. sayfanın testine dön';
+
+    resumeReviewBtn.textContent =
+      number + '. sayfayı tekrar görüntüle';
+
+    resumeReviewBtn.style.display = 'block';
+
+  } else {
+
+    resumeCurrentBtn.textContent =
+      number + '. sayfayı görüntüle';
+
+    resumeReviewBtn.style.display = 'none';
+
+  }
+
+  resumeOverlay.style.display = 'flex';
+
+  document.body.style.overflow = 'hidden';
+
+  if (canResumeNext(state)) {
+    resumeNextBtn.focus();
+  } else {
+    resumeCurrentBtn.focus();
+  }
+
+}
+
+function pauseTraining() {
+
+  if (isPaused || !sessionActive) return;
+
+  const savedSuccessfully = saveProgress();
+
+  /* Videoyu durdur */
+
+  videoFrame.src = 'about:blank';
+
+  /* Test iframe'i korunur.
+     Aynı oturumda devam edilirse mevcut cevaplar kalır. */
+
+  openResumeScreen(true,savedSuccessfully);
+
+}
+
+function closeResumeScreen() {
+
+  resumeOverlay.style.display = 'none';
+
+  document.body.style.overflow = '';
+
+  document.querySelector('main').inert = false;
+
+  isPaused = false;
+  sessionActive = true;
+
+}
+
+function resumeCurrent() {
+
+  if (!resumeState) return;
+
+  const state = resumeState;
+
+  const preserveQuiz =
+    sessionActive &&
+    view === 'quiz' &&
+    state.view === 'quiz' &&
+    currentSlide === state.page - 1 &&
+    quizLoadedUrl !== '';
+
+  currentSlide = state.page - 1;
+
+  closeResumeScreen();
+
+  if (state.view === 'quiz' && hasQuiz(state.page)) {
+
+    if (preserveQuiz) {
+
+      updateProgress();
+      saveProgress();
+
+    } else {
+
+      showQuiz();
+
+    }
+
+  } else {
+
+    showSlide();
+
+  }
+
+  window.scrollTo(0,0);
+
+}
+
+function resumeReview() {
+
+  if (!resumeState) return;
+
+  currentSlide = resumeState.page - 1;
+
+  closeResumeScreen();
+
+  showSlide();
+
+  window.scrollTo(0,0);
+
+}
+
+function resumeNext() {
+
+  if (!resumeState || !canResumeNext(resumeState)) return;
+
+  currentSlide = resumeState.page;
+
+  closeResumeScreen();
+
+  showSlide();
+
+  window.scrollTo(0,0);
+
+}
+
+function restartTraining() {
+
+  const confirmed = confirm(
+    'Eğitime baştan başlamak istediğinizden emin misiniz? ' +
+    'Kaydedilmiş ilerlemeniz ve tamamlanan test bilgileriniz silinecektir.'
+  );
+
+  if (!confirmed) return;
+
+  quizDone.clear();
+
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    storageAvailable = false;
+  }
+
+  resumeState = null;
+  currentSlide = 0;
+  view = 'slide';
+
+  closeResumeScreen();
+
+  showSlide();
+
+  window.scrollTo(0,0);
+
+}
+
+/* ==========================================
+   TAM EKRAN
+   ========================================== */
+
 function toggleFullscreen() {
-  const area = document.getElementById('presentation');
-  if (document.fullscreenElement) document.exitFullscreen();
-  else if (area.requestFullscreen) area.requestFullscreen().catch(function () { alert('Bu tarayıcıda tam ekran desteklenmiyor.'); });
-  else alert('Bu tarayıcıda tam ekran desteklenmiyor.');
+
+  if (isPaused || view !== 'slide') return;
+
+  if (document.fullscreenElement) {
+
+    document.exitFullscreen();
+
+  } else if (presentation.requestFullscreen) {
+
+    presentation.requestFullscreen().catch(function() {
+
+      alert('Bu tarayıcıda tam ekran desteklenmiyor.');
+
+    });
+
+  } else {
+
+    alert('Bu tarayıcıda tam ekran desteklenmiyor.');
+
+  }
+
 }
-document.addEventListener('keydown', function (event) {
-  if (event.target.closest('input, textarea, select, button')) return;
-  if (event.key === 'ArrowRight') changeSlide(1);
-  if (event.key === 'ArrowLeft') changeSlide(-1);
+
+/* ==========================================
+   KLAVYE İLE SAYFA GEÇİŞİ
+   ========================================== */
+
+document.addEventListener('keydown',function(event) {
+
+  if (isPaused || !sessionActive) return;
+
+  if (
+    event.target.closest &&
+    event.target.closest('input, textarea, select, button')
+  ) return;
+
+  if (event.key === 'ArrowRight') {
+
+    event.preventDefault();
+    changeSlide(1);
+
+  }
+
+  if (event.key === 'ArrowLeft') {
+
+    event.preventDefault();
+    changeSlide(-1);
+
+  }
+
 });
-showSlide();
+
+/* ==========================================
+   TARAYICI KAPATILIRKEN KAYDET
+   ========================================== */
+
+window.addEventListener('pagehide',function() {
+
+  if (sessionActive && !isPaused) {
+
+    saveProgress();
+
+  }
+
+});
+
+document.addEventListener('visibilitychange',function() {
+
+  if (
+    document.visibilityState === 'hidden' &&
+    sessionActive &&
+    !isPaused
+  ) {
+
+    saveProgress();
+
+  }
+
+});
+
+/* ==========================================
+   EĞİTİMİN İLK AÇILIŞI
+   ========================================== */
+
+function initializeTraining() {
+
+  const saved = loadProgress();
+
+  if (saved) {
+
+    resumeState = saved;
+
+    saved.completedQuizzes.forEach(function(number) {
+
+      quizDone.add(number);
+
+    });
+
+    currentSlide = saved.page - 1;
+    view = saved.view;
+
+    openResumeScreen(false,true);
+
+  } else {
+
+    currentSlide = 0;
+    sessionActive = true;
+
+    showSlide();
+
+  }
+
+}
+
+initializeTraining();
+
 </script>
+
 </body>
 </html>
