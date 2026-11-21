@@ -192,6 +192,7 @@ const lessons = [
 
 
 let currentSlide = 0;
+let view = 'slide';
 let imageRequest = 0;
 const slideImage = document.getElementById('slideImage');
 const slideFallback = document.getElementById('slideFallback');
@@ -210,6 +211,8 @@ function driveId(url) {
 function previewUrl(id) { return 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview'; }
 function imageUrl(id) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600'; }
 function showSlide() {
+  view = 'slide';
+  evaluationPanel.hidden = true;
   presentation.style.display = '';
   next.textContent = 'Sonraki ▶';
   const lesson = lessons[currentSlide];
@@ -253,12 +256,15 @@ function showSlide() {
   }
   counter.textContent = 'Sayfa ' + lesson.number + ' / ' + lessons.length;
   prev.disabled = currentSlide === 0;
-  next.disabled = currentSlide === lessons.length - 1;
+  next.disabled = false;
+  if (currentSlide === lessons.length - 1) next.textContent = 'Eğitimi Tamamla';
   document.getElementById('jumpPage').value = currentSlide + 1;
   saveProgress();
 }
 function changeSlide(direction) {
   if (isPaused) return;
+  if (view === 'survey') { if (direction < 0) showSlide(); return; }
+  if (direction > 0 && currentSlide === lessons.length - 1) { showEvaluation(); return; }
   const target = currentSlide + direction;
   if (target >= 0 && target < lessons.length) { currentSlide = target; showSlide(); }
 }
@@ -278,7 +284,7 @@ document.addEventListener('keydown', function (event) {
 
 const STORAGE_KEY = 'EIA649C_Review_Progress_v1';
 let isPaused = false;
-function saveProgress(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({page:currentSlide+1}));}catch(e){}}
+function saveProgress(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({page:currentSlide+1,view}));}catch(e){}}
 function loadProgress(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));return s && Number.isInteger(s.page)&&s.page>=1&&s.page<=93?s:null;}catch(e){return null;}}
 const resumePanel=document.createElement('section');
 resumePanel.hidden=true;
@@ -288,11 +294,80 @@ document.body.append(resumePanel);
 function openResumeScreen() { isPaused=true; resumePanel.hidden=false;resumePanel.style.display='flex';document.getElementById('resumeStage').textContent='Kayıtlı sayfa: '+(currentSlide+1)+' / 93'; }
 function closeResumeScreen(){isPaused=false;resumePanel.hidden=true;resumePanel.style.display='none';}
 function pauseTraining(){saveProgress(); videoFrame.src='about:blank';openResumeScreen();}
-function resumeCurrent(){closeResumeScreen();showSlide();}
+function resumeCurrent(){closeResumeScreen();if(view==='survey')showEvaluation();else showSlide();}
 document.getElementById('resumeCurrentBtn').onclick=resumeCurrent;
 document.getElementById('restartBtn').onclick=()=>{currentSlide=0;closeResumeScreen();showSlide();};
+/* EIA-649C – Eğitim sonu değerlendirmesi */
+const evaluationPanel = document.createElement('section');
+evaluationPanel.id = 'evaluationPanel';
+evaluationPanel.hidden = true;
+evaluationPanel.innerHTML = `
+<style>
+#evaluationPanel {background:white;max-width:780px;margin:0 auto;padding:clamp(18px,4vw,40px);border-radius:12px;box-shadow:0 3px 14px #0002;text-align:center}
+#evaluationPanel .rating {display:flex;gap:8px;margin:25px 0 12px}
+#evaluationPanel .rating button {flex:1;min-width:0;padding:3px;background:transparent;color:#163653}
+#evaluationPanel .rating img {display:block;width:100%;border-radius:8px;filter:grayscale(1);opacity:.45}
+#evaluationPanel .rating button.active img {filter:none;opacity:1}
+#evaluationPanel .rating button span {display:block;margin-top:8px}
+#evaluationPanel textarea {display:block;width:100%;padding:12px;border:1px solid #b8c8d6;border-radius:8px;font:inherit;margin:10px 0 20px;resize:vertical}
+</style>
+<h2>Eğitim Değerlendirme Anketi</h2>
+<p>Eğitimi tamamladığınız için teşekkür ederiz.</p>
+<form action="https://formsubmit.co/ilhant@gmail.com" method="POST" target="_blank" id="evaluationForm">
+<input type="hidden" name="_subject" value="EIA-649C Pekiştirme Modu Değerlendirmesi">
+<input type="hidden" name="_template" value="table">
+<input type="hidden" name="Puan" id="evaluationScore">
+<p><strong>Eğitimi genel olarak nasıl değerlendirirsiniz?</strong></p>
+<div class="rating" role="group" aria-label="Eğitim puanı"></div>
+<p id="evaluationLabel" aria-live="polite">Puanınızı seçiniz.</p>
+<label for="evaluationComment">Görüş ve önerileriniz (isteğe bağlı)</label>
+<textarea id="evaluationComment" name="Görüş ve öneriler" rows="4" maxlength="4000"></textarea>
+<p style="font-size:12px">Puanınız ve yorumunuz FormSubmit aracılığıyla eğitmene iletilir.</p>
+<button id="evaluationSend" type="submit" disabled>Değerlendirmeyi Gönder</button>
+<p id="evaluationStatus" role="status"></p>
+</form>`;
+presentation.after(evaluationPanel);
+let evaluationRating = 0;
+const evaluationLabels = ['', 'Çok yetersiz', 'Yetersiz', 'Orta', 'İyi', 'Çok iyi'];
+const ratingButtons = [];
+for (let i = 1; i <= 5; i++) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-label', i + ' puan: ' + evaluationLabels[i]);
+  b.setAttribute('aria-pressed','false');
+  b.innerHTML = '<img src="rebel-alliance.jpg" alt=""><span>' + i + '</span>';
+  b.onclick = () => {
+    evaluationRating = i;
+    ratingButtons.forEach((x,j) => {
+      x.classList.toggle('active', j < i);
+      x.setAttribute('aria-pressed', String(j === i-1));
+    });
+    document.getElementById('evaluationScore').value = i + ' / 5 — ' + evaluationLabels[i];
+    document.getElementById('evaluationLabel').textContent = i + ' / 5 — ' + evaluationLabels[i];
+    document.getElementById('evaluationSend').disabled = false;
+  };
+  ratingButtons.push(b);
+  evaluationPanel.querySelector('.rating').append(b);
+}
+document.getElementById('evaluationForm').addEventListener('submit', e => {
+  if (!evaluationRating) {e.preventDefault();return;}
+  document.getElementById('evaluationStatus').textContent = 'Gönderimi açılan FormSubmit ekranında tamamlayınız.';
+});
+function showEvaluation() {
+  view = 'survey';
+  ++imageRequest;
+  videoFrame.src = 'about:blank';
+  presentation.style.display = 'none';
+  evaluationPanel.hidden = false;
+  counter.textContent = 'Eğitim Değerlendirmesi';
+  prev.disabled = false;
+  next.disabled = true;
+  next.textContent = 'Eğitim Sonu';
+  saveProgress();
+  window.scrollTo(0,0);
+}
 const state=loadProgress();
-if(state){currentSlide=state.page-1;openResumeScreen();}else showSlide();
+if(state){currentSlide=state.page-1;view=state.view==='survey'&&currentSlide===92?'survey':'slide';openResumeScreen();}else showSlide();
 </script>
 </body>
 </html>
