@@ -41,7 +41,6 @@ button:disabled { opacity: 0.4; cursor: default; }
  .slide-image, .slide-fallback, #imageMissing { position: relative; inset: auto; width: 100%; height: 100%; min-width: 0; object-fit: contain; }
  .video-frame, #videoMissing { position: relative; left: auto; top: auto; width: 100%; height: 100%; min-width: 0; aspect-ratio: auto; }
 }
-.presentation:fullscreen { width: 100vw; height: 100dvh; background: #111; }
 </style>
 </head>
 <body>
@@ -62,9 +61,9 @@ button:disabled { opacity: 0.4; cursor: default; }
     <button id="prev" onclick="changeSlide(-1)">◀ Önceki</button>
     <span id="counter">Sayfa 1 / 93</span>
     <button id="next" onclick="changeSlide(1)">Sonraki ▶</button>
-    <button id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Tam Ekran</button>
   <button id="pauseBtn" onclick="pauseTraining()">Ara Ver</button>
   </nav>
+  <div style="text-align:center;margin:8px 0 16px"><a href="pekistirme.html" style="color:#123858;font-weight:bold">Pekiştirme Modu (Test adımları yoktur)</a></div>
   <div id="progressText" style="text-align:center;font-size:13px"></div>
   <details class="help">
     <summary>Mobil Cihazlarda Görüntüleme Sorunları</summary>
@@ -76,7 +75,7 @@ button:disabled { opacity: 0.4; cursor: default; }
     <p>2. Siteler Arası Takibi Engelle (Prevent Cross-Site Tracking) seçeneğini geçici olarak kapatınız.</p>
     <p>3. Tüm Çerezleri Engelle (Block All Cookies) seçeneği varsa kapalı olduğundan emin olunuz. Bu seçenek bazı iOS sürümlerinde İleri Düzey (Advanced) bölümünde bulunabilir.</p>
     <p>4. Safari'yi tamamen kapatıp sunum bağlantısını yeniden açınız.</p>
-    <p><strong>Andoid ayarları (Google Chrome):</strong></p>
+    <p><strong>Android ayarları (Google Chrome):</strong></p>
     <p>1. Chrome uygulamasını açınız.</p>
     <p>2. Sağ üstteki üç nokta (⋮) → Ayarlar bölümüne giriniz.</p>
     <p>3. Site ayarları → Üçüncü taraf çerezleri bölümünü açınız.</p>
@@ -305,7 +304,6 @@ const quizPanel = document.getElementById('quizPanel');
 const quizFrame = document.getElementById('quizFrame');
 const quizError = document.getElementById('quizError');
 const presentation = document.getElementById('presentation');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
 
 function driveId(url) {
   const match = url.match(/\/file\/d\/([^/?#]+)/) || url.match(/[?&]id=([^&#]+)/);
@@ -331,7 +329,6 @@ function showQuiz() {
   prev.disabled = false;
   next.disabled = !quizDone.has(number);
   next.textContent = 'Sonraki Sayfa ▶';
-  fullscreenBtn.disabled = true;
   window.scrollTo(0,0);
 }
 window.addEventListener('message', function(event) {
@@ -361,7 +358,6 @@ function showSlide() {
   quizFrame.src = 'about:blank';
   quizPanel.style.display = 'none';
   presentation.style.display = '';
-  fullscreenBtn.disabled = false;
   next.textContent = 'Sonraki ▶';
   const lesson = lessons[currentSlide];
   const request = ++imageRequest;
@@ -426,12 +422,7 @@ function changeSlide(direction) {
   currentSlide++;
   showSlide();
 }
-function toggleFullscreen() {
-  const area = document.getElementById('presentation');
-  if (document.fullscreenElement) document.exitFullscreen();
-  else if (area.requestFullscreen) area.requestFullscreen().catch(function () { alert('Bu tarayıcıda tam ekran desteklenmiyor.'); });
-  else alert('Bu tarayıcıda tam ekran desteklenmiyor.');
-}
+
 document.addEventListener('keydown', function (event) {
   if (event.target.closest('input, textarea, select, button')) return;
   if (event.key === 'ArrowRight') changeSlide(1);
@@ -447,15 +438,13 @@ function loadProgress() { try { const s=JSON.parse(localStorage.getItem(STORAGE_
 const resumePanel=document.createElement('section');
 resumePanel.hidden=true;
 resumePanel.style.cssText='position:fixed;inset:0;background:#e8edf3;z-index:100;display:none;align-items:center;justify-content:center;padding:20px';
-resumePanel.innerHTML=`<div style="background:white;padding:30px;border-radius:12px;text-align:center;max-width:500px"><h2>Eğitime Devam Et</h2><p id="resumeStage"></p><p><button id="resumeCurrentBtn">Kaldığım yerden devam et</button></p><p><button id="resumeReviewBtn">Son sayfayı tekrar görüntüle</button></p><p><button id="resumeNextBtn">Sonraki sayfadan devam et</button></p><p><button id="restartBtn">Baştan başla</button></p></div>`;
+resumePanel.innerHTML=`<div style="background:white;padding:30px;border-radius:12px;text-align:center;max-width:500px"><h2>Eğitime Devam Et</h2><p id="resumeStage"></p><p><button id="resumeCurrentBtn">Kaldığım yerden devam et</button></p><p><button id="restartBtn">Baştan başla</button></p></div>`;
 document.body.append(resumePanel);
-function openResumeScreen() { isPaused=true; resumePanel.hidden=false;resumePanel.style.display='flex';document.getElementById('resumeStage').textContent='Kayıtlı sayfa: '+(currentSlide+1)+' / 93';document.getElementById('resumeNextBtn').hidden=currentSlide===92 || (hasQuiz(currentSlide+1)&&!quizDone.has(currentSlide+1)); }
+function openResumeScreen() { isPaused=true; resumePanel.hidden=false;resumePanel.style.display='flex';document.getElementById('resumeStage').textContent='Kayıtlı sayfa: '+(currentSlide+1)+' / 93'; }
 function closeResumeScreen(){isPaused=false;resumePanel.hidden=true;resumePanel.style.display='none';}
 function pauseTraining(){saveProgress(); videoFrame.src='about:blank';openResumeScreen();}
 function resumeCurrent(){closeResumeScreen();if(view==='survey')showEvaluation();else if(view==='quiz')showQuiz();else showSlide();}
 document.getElementById('resumeCurrentBtn').onclick=resumeCurrent;
-document.getElementById('resumeReviewBtn').onclick=()=>{closeResumeScreen();showSlide();};
-document.getElementById('resumeNextBtn').onclick=()=>{closeResumeScreen();if(currentSlide<92&&(!hasQuiz(currentSlide+1)||quizDone.has(currentSlide+1)))currentSlide++;showSlide();};
 document.getElementById('restartBtn').onclick=()=>{if(!confirm('Eğitim ilerlemesi sıfırlansın mı?'))return;quizDone.clear();currentSlide=0;closeResumeScreen();showSlide();};
 function initializeTraining(){const state=loadProgress();if(state){currentSlide=state.page-1;for(const n of (Array.isArray(state.completedQuizzes)?state.completedQuizzes:[]))if(Number.isInteger(n)&&hasQuiz(n))quizDone.add(n);view=state.view==='survey'&&currentSlide===92?'survey':state.view==='quiz'&&hasQuiz(currentSlide+1)?'quiz':'slide';openResumeScreen();}else showSlide();updateProgress();}
 
@@ -528,7 +517,6 @@ function showEvaluation() {
   prev.disabled = false;
   next.disabled = true;
   next.textContent = 'Eğitim Sonu';
-  fullscreenBtn.disabled = true;
   updateProgress();
   saveProgress();
   window.scrollTo(0,0);
