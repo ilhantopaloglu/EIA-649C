@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EIA-649C Temelinde Konfigürasyon Yönetimi</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; }
+body { font-family: Arial, sans-serif; background: #e8edf3; color: #163653; }
+header { padding: 13px; background: #123858; color: white; text-align: center; font-size: clamp(14px,2vw,20px); font-weight: bold; }
+.container { width: min(98%,1500px); margin: 12px auto; }
+.presentation { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: white; box-shadow: 0 3px 14px #0002; }
+.slide-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: fill; }
+.slide-fallback { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: none; }
+.video-frame { position: absolute; top: 16.4%; left: 74.4%; height: 72.5%; width: auto; aspect-ratio: 9/16; border: 0; background: #111; z-index: 2; }
+.missing { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 15px; background: #f5f8fc; color: #163653; font-size: clamp(12px,1.4vw,18px); }
+#videoMissing { inset: auto; top: 16.4%; left: 74.4%; height: 72.5%; width: auto; aspect-ratio: 9/16; z-index: 3; background: #e8edf3; }
+.controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; padding: 14px 5px; }
+button { border: 0; border-radius: 6px; background: #123858; color: white; padding: 11px 16px; cursor: pointer; font-size: 14px; }
+button:hover:not(:disabled) { background: #20618d; }
+button:disabled { opacity: 0.4; cursor: default; }
+#counter { font-weight: bold; min-width: 105px; text-align: center; }
+.help { max-width: 850px; margin: 15px auto; padding: 12px 18px; background: #f5f8fc; border: 1px solid #ccd8e3; border-radius: 8px; font-size: 13px; line-height: 1.7; }
+.help summary { font-weight: bold; cursor: pointer; }
+.help p { margin: 10px 0; }
+.warning { font-size: 11px; color: #64748b; }
+.notice { max-width: 850px; margin: 20px auto 30px; padding: 15px; text-align: center; font-size: 12px; line-height: 1.7; color: #64748b; border-top: 1px solid #ccd8e3; }
+.notice p { margin: 7px 0; }
+.notice strong { color: #163653; font-size: 13px; }
+@media (max-width: 767px) and (orientation: portrait) {
+ .container { width: 100%; padding: 8px; margin: 0 auto; }
+ .presentation { display: flex; flex-direction: column; gap: 12px; aspect-ratio: auto; overflow: visible; background: transparent; box-shadow: none; }
+ .slide-image, .slide-fallback, #imageMissing { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 16/9; background: white; }
+ .video-frame, #videoMissing { position: relative; left: auto; top: auto; width: min(72%,320px); height: auto; aspect-ratio: 9/16; margin: 0 auto; border-radius: 8px; }
+}
+@media (max-height: 600px) and (orientation: landscape) {
+ header { padding: 6px; font-size: 13px; }
+ .container { width: 100%; padding: 6px; margin: 0 auto; }
+ .presentation { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,1fr); gap: 6px; aspect-ratio: auto; height: min(72dvh,520px); box-shadow: none; background: transparent; }
+ .slide-image, .slide-fallback, #imageMissing { position: relative; inset: auto; width: 100%; height: 100%; min-width: 0; object-fit: contain; }
+ .video-frame, #videoMissing { position: relative; left: auto; top: auto; width: 100%; height: 100%; min-width: 0; aspect-ratio: auto; }
+}
+</style>
+</head>
+<body>
+<header>EIA-649C Temelinde Konfigürasyon Yönetimi</header>
+<main class="container">
+  <div class="presentation" id="presentation">
+    <img id="slideImage" class="slide-image" alt="Eğitim slaytı">
+    <iframe id="slideFallback" class="slide-fallback" title="Google Drive slayt önizlemesi"></iframe>
+    <div id="imageMissing" class="missing"></div>
+    <iframe id="videoFrame" class="video-frame" title="Anlatım videosu" allow="autoplay; fullscreen; encrypted-media" allowfullscreen referrerpolicy="no-referrer"></iframe>
+    <div id="videoMissing" class="missing"></div>
+  </div>
+  <section id="quizPanel" style="display:none;background:#fff;padding:20px;border-radius:8px;min-height:420px;box-shadow:0 3px 14px #0002">
+    <iframe id="quizFrame" title="Bilgi değerlendirme testi" style="width:100%;min-height:650px;border:0" scrolling="auto"></iframe>
+    <div id="quizError" style="display:none;padding:16px;color:#a22"></div>
+  </section>
+  <nav class="controls">
+    <button id="prev" onclick="changeSlide(-1)">◀ Önceki</button>
+    <label for="pageSelect" style="font-size:14px">Sayfa:</label>
+    <select id="pageSelect" aria-label="Sayfaya git" onchange="goToPage(Number(this.value))" style="padding:10px;border-radius:6px;font-size:14px"></select>
+    <span id="counter">Sayfa 1 / 93</span>
+    <button id="next" onclick="changeSlide(1)">Sonraki ▶</button>
+    <button id="quizButton" onclick="toggleQuiz()" style="display:none">Testi Aç</button>
+  <button id="pauseBtn" onclick="pauseTraining()">Ara Ver</button>
+  </nav>
+  <div id="progressText" style="text-align:center;font-size:13px"></div>
+  <details class="help">
+    <summary>Mobil Cihazlarda Görüntüleme Sorunları</summary>
+    <p>Google hesabınıza giriş yaptığınızdan emin olunuz.</p>
+    <p>Sunum sayfaları veya videolar görüntülenmiyorsa öncelikle tarayıcıyı tamamen kapatıp yeniden açmayı deneyiniz. </p>
+    <p>Üçüncü taraf çerez kısıtlamaları, Google Drive üzerinden paylaşılan içeriklerin görüntülenmesini etkileyebilir. Sorun devam ederse aşağıdaki ayarları kontrol ediniz.</p>
+    <p><strong>iOS ayarları (Safari):</strong></p>
+    <p>1. Ayarlar → Uygulamalar → Safari bölümünü açınız.</p>
+    <p>2. Siteler Arası Takibi Engelle (Prevent Cross-Site Tracking) seçeneğini geçici olarak kapatınız.</p>
+    <p>3. Tüm Çerezleri Engelle (Block All Cookies) seçeneği varsa kapalı olduğundan emin olunuz. Bu seçenek bazı iOS sürümlerinde İleri Düzey (Advanced) bölümünde bulunabilir.</p>
+    <p>4. Safari'yi tamamen kapatıp sunum bağlantısını yeniden açınız.</p>
+    <p><strong>Android ayarları (Google Chrome):</strong></p>
+    <p>1. Chrome uygulamasını açınız.</p>
+    <p>2. Sağ üstteki üç nokta (⋮) → Ayarlar bölümüne giriniz.</p>
+    <p>3. Site ayarları → Üçüncü taraf çerezleri bölümünü açınız.</p>
+    <p>4. Mümkünse yalnızca ilgili site için istisna tanımlayınız. Bu seçenek bulunmuyorsa üçüncü taraf çerezlerine geçici olarak izin veriniz.</p>
+    <p>5. Chrome'u kapatıp sunum bağlantısını yeniden açınız.</p>
+    <p class="warning">Bu değişiklikler yalnızca görüntüleme sorunu yaşanması durumunda uygulanmalıdır. Sunum tamamlandıktan sonra gizlilik ve güvenlik açısından geçici olarak değiştirilen ayarların eski durumuna getirilmesi önerilir.</p>
+  </details>
+  <footer class="notice">
+    <p><strong>© 2026 İlhan Topaloğlu. Tüm hakları saklıdır.</strong></p>
+    <p>Eğitim içeriği İlhan Topaloğlu tarafından hazırlanmıştır. Katılımcılara, kendilerine tanımlanan erişim tarihinden itibaren bir hafta süreyle yalnızca kişisel eğitim amacıyla görüntüleme hakkı verilmiştir. İçeriğin izinsiz indirilmesi, çoğaltılması, paylaşılması veya üçüncü kişilere aktarılması yasaktır.</p>
+    <p>Bilgi için:
+     <a href="mailto:ilhant@gmail.com"
+     style="color:#163653; font-weight:bold;">
+     ilhant@gmail.com
+     </a>
+</p>
+  </footer>
+</main>
+<script>
+/* YALNIZCA BU LİSTEDEKİ TIRNAK İÇİ BAĞLANTILARI DEĞİŞTİRİN.
+   Her sayfa için Google Drive'dan alınan paylaşım bağlantısını yapıştırın. */
+const lessons = [
+    { number: 1, png: "https://drive.google.com/file/d/1B1mr2oWFFCL2vzemLzZwfOCTzba_f-mV/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1vldE0eXovbLoKbDxe_-2EwX9r6PaeLc-/view?usp=drive_link" },
+    { number: 2, png: "https://drive.google.com/file/d/19ZsiMquzXd2lquFZFrccCPEKDC8doksw/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1xlQc_Z6aDVicKFqCGnRGjALP1TbToIst/view?usp=drive_link" },
+    { number: 3, png: "https://drive.google.com/file/d/12WCKYrh6IoEiYTsyCxJKFvd614SOnuzg/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1VNTpirIwFiwq-Ww1RXSR8FCBFN389z2o/view?usp=drive_link" },
+    { number: 4, png: "https://drive.google.com/file/d/1BpQe311K2nvMl0rYHk1xSQ2avABokHWH/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1XhsQoJOM4xW0484_MZhjEf1lOeYlYAYR/view?usp=drive_link" },
+    { number: 5, png: "https://drive.google.com/file/d/1rUXEDf8wHuuRq9Rg6SeRiitzTbSnA1UO/view?usp=drive_link", mp4: "https://drive.google.com/file/d/14dcQAS8hRCOOKNpeR_uBbePzeZNXJgDd/view?usp=drive_link" },
+    { number: 6, png: "https://drive.google.com/file/d/1Gbcz-W5_FpMxne7u295Y_rCD5T0yAKRA/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1uCrAn98BET3x7_YqJCx4TCZNHcPYjI0j/view?usp=drive_link" },
+    { number: 7, png: "https://drive.google.com/file/d/1NcXLK5n6YV5278lGmhuMpbhE3ZhNwnj0/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1FoxP3-PNP_TA8xyMWDv-TUfAwcTsm81v/view?usp=drive_link" },
+    { number: 8, png: "https://drive.google.com/file/d/1P9kXuMFBYQq9Sp2h1C-NCKyTEsN1LBlV/view?usp=drive_link", mp4: "https://drive.google.com/file/d/18j_AK_mK0TONi5RPIKb9_DWwkUafiHAg/view?usp=drive_link" },
+    { number: 9, png: "https://drive.google.com/file/d/1j3RiNIizitb9kKA10nLOqoYT45CS-yKB/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1CL3EVp47cd1n-xtjtbyLAGW8pIzSxAci/view?usp=drive_link" },
+    { number: 10, png: "https://drive.google.com/file/d/1vsWPi4r7Xn2L7zuNzM17eJ1pfDSWdbn0/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1mUFAh2btTZ5i7Fd-DgZBHZUOI5wuHaQN/view?usp=drive_link" },
+    { number: 11, png: "https://drive.google.com/file/d/1kfC0JUU_6KxdDg-2pux4225m32hfAyaX/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1cPDRNk5GOxhP7t_VzcsK-BfmIy3s05p1/view?usp=drive_link" },
+    { number: 12, png: "https://drive.google.com/file/d/1Aql3JHSBjkOuOM0sgJRJSelufTOM-XTF/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Wv12BNjcpoc9D3Sz4Y4N0M_ZSAcdSgHG/view?usp=drive_link" },
+    { number: 13, png: "https://drive.google.com/file/d/1w1dMxl50iMqgn1GBz-f8TYgD5hLhzvWk/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1o3GAVvnrBQdJ15OJRYMLOHPwO3rUs8GG/view?usp=drive_link" },
+    { number: 14, png: "https://drive.google.com/file/d/1xBGMsIHvMfrf2U-LEwxeL4O09GyI6krz/view?usp=drive_link", mp4: "https://drive.google.com/file/d/16v3aXqTAgkrVkhNXOhafwJNQKmfROrWd/view?usp=drive_link" },
+    { number: 15, png: "https://drive.google.com/file/d/1-hTh_-G-US7e1DfaGxFx3J_L6wBZZGek/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1QfDy-2IXMVAYhQ5ZAC31MSddQwWY6NRP/view?usp=drive_link" },
+    { number: 16, png: "https://drive.google.com/file/d/1wqeFMbgcyMZMV2eSTuF12mDlEw3SYeBL/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1aPgf-fN4859m5RJmoH3jFVwTGGa95JE_/view?usp=drive_link" },
+    { number: 17, png: "https://drive.google.com/file/d/1VCYieLYMa5VSeQPTUvwcvIRbE3XYXIm2/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1mdzLNS7yUeTXxVFEFQp_au837kxGJJGj/view?usp=drive_link" },
+    { number: 18, png: "https://drive.google.com/file/d/17_yS_T0o0d63i74Naa1aEtGtyveKBd6P/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1DKoq89vt3ErPjZBCuMjd7zxlYPl606rv/view?usp=drive_link" },
+    { number: 19, png: "https://drive.google.com/file/d/1sURo1AEPeT9SPjDDP09hLSMbluNCK2j5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1ozCQdb1d-T1T2BY-UR5E92l9r-H852DC/view?usp=drive_link" },
+    { number: 20, png: "https://drive.google.com/file/d/1eNJaJdqqXEjxWKBHahsD9gEUbS82Hp-T/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1n4UxQ9JOnUou8-o3U1edi0qki-HctKZf/view?usp=drive_link" },
+    { number: 21, png: "https://drive.google.com/file/d/1awalKZkV6XsMLIvwNRDQnNfqGON1VqBM/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1s0VhccCpfMlepxrZSxLsm-BFWQb5CKN2/view?usp=drive_link" },
+    { number: 22, png: "https://drive.google.com/file/d/1grgnillSbXWmEx6ZMMY58hprGSdqkFs5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1MQB1CdagHbAB4O1DdxZwz6g57SXK2NZU/view?usp=drive_link" },
+    { number: 23, png: "https://drive.google.com/file/d/1Ex_IAxdQGaz_2Q1mdm_hcp_3549kKzLM/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1iK7V2QmMLFc8tCwtv5VbMzNO7Ybs-tUi/view?usp=drive_link" },
+    { number: 24, png: "https://drive.google.com/file/d/1VU13E4JrnI80PeP0MvydqwFnE4jM_T83/view?usp=drive_link", mp4: "https://drive.google.com/file/d/17MFCfh_8qJC9Zo1jAmwPjoO2tDhLfV3I/view?usp=drive_link" },
+    { number: 25, png: "https://drive.google.com/file/d/1nAw9_M4KlHG1aJiQmUhoA7Ed-viT-xhg/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1QI_NiNuDXXx9fKYWo9LrVQMfP12XJfT4/view?usp=drive_link" },
+    { number: 26, png: "https://drive.google.com/file/d/1doe4mY0I4oHsQElsbQeow3oy_c_5FoBT/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1SmqkFxFufo9YZPAHc5zHohOtU1TNQJ5G/view?usp=drive_link" },
+    { number: 27, png: "https://drive.google.com/file/d/1P7OGeUSs857BwyLy6QrlkN5yB2LQVx9D/view?usp=drive_link", mp4: "https://drive.google.com/file/d/16p3dAZxyS2xl-mtYQkEY9GUBtOaCPaiL/view?usp=drive_link" },
+    { number: 28, png: "https://drive.google.com/file/d/1GvlQIuW_hGTlQGSzOxBv1KngpURnLSAb/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1RqxsFxPQRMeF-VOQ-_wCSGkGptQTDbDy/view?usp=drive_link" },
+    { number: 29, png: "https://drive.google.com/file/d/1q2uxvVKyls1vlyTJ0GgiHAy_oEsTr9_G/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Xkls26uemw6TrWPKSSYt0nmita7mNbVQ/view?usp=drive_link" },
+    { number: 30, png: "https://drive.google.com/file/d/1_aSbTRuaaaHRs3NO0x6w9DjTqHlB2fI8/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1vYtZbdY51lbOqGjmSU1f9r122zct7GRe/view?usp=drive_link" },
+    { number: 31, png: "https://drive.google.com/file/d/1rf7nurb6zficoX3xNDpOXh-of_DiqzdZ/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1aZES6nztEv9w1hop53_sX1De7B1j673t/view?usp=drive_link" },
+    { number: 32, png: "https://drive.google.com/file/d/1EP7-LVnPdAXazbu9iQFL23fhGWqGaRTU/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1nWF_Z_rEMle45dPYd5iWeWGcxGXqAzGo/view?usp=drive_link" },
+    { number: 33, png: "https://drive.google.com/file/d/1PWTHsde7YVXDCyTLN5kUIvIUL8D0qISl/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1cCaOIGgVu9YLjasOChikVJTC3Uifpw0f/view?usp=drive_link" },
+    { number: 34, png: "https://drive.google.com/file/d/1z6VmIEcAVsF_QEqjfVTJRzbHIuV82RlW/view?usp=drive_link", mp4: "https://drive.google.com/file/d/12mvy9fsEa-qOmbB10M74Lo_hU2JXWCqF/view?usp=drive_link" },
+    { number: 35, png: "https://drive.google.com/file/d/1_-7_V-e7o2xbK6W9L6MbnajoPRBY1pEQ/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1APqt5MdstKWluovHywtiGyN1xtg2swFp/view?usp=drive_link" },
+    { number: 36, png: "https://drive.google.com/file/d/1YlMiSgjehLI7i9WY17oY2Fu2k_xQiZr_/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1psr7dLJxJNV9P6R0ZLbBBLl8Xy6eglkS/view?usp=drive_link" },
+    { number: 37, png: "https://drive.google.com/file/d/18JCD_JK1nG2r1ORbrc9iPXLoL6hxRrBs/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1K2TxBqT0b9w4VurkhlWGl_e2FMEh2RdS/view?usp=drive_link" },
+    { number: 38, png: "https://drive.google.com/file/d/1ErD7Sm2BPN4-ir1x2BfqF4uoK-3o2S90/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1J4ODUmhq8g5PEYgEpWVehsMirBf7Yw8b/view?usp=drive_link" },
+    { number: 39, png: "https://drive.google.com/file/d/1NHmQ5dKmvGUau-SdzCU3AiUAqwiXE0HK/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1PN76F65S4cyHlWdqPGLEnPz1Uc_7wVfF/view?usp=drive_link" },
+    { number: 40, png: "https://drive.google.com/file/d/1rlLrt1KOeEe_vGj49uIgzQ3axrIb9REz/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1oqX6SU5GJsm6L-8uiJrqIfhZ9EeADQG7/view?usp=drive_link" },
+    { number: 41, png: "https://drive.google.com/file/d/1ymtZ7AEJe30BmVttLLEorr_bcnqKOcOw/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1uaIPEEGhaBj-X2_FJNW8K3-BEqLUhxRB/view?usp=drive_link" },
+    { number: 42, png: "https://drive.google.com/file/d/15sKSIwCn0u3wpXNtjotu9xf3U_uNyj61/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1rt1QaOR14IeRrYnKKgGY1XACKYMuMjcy/view?usp=drive_link" },
+    { number: 43, png: "https://drive.google.com/file/d/1WTj5TRdh1wy85eOgGc2Mq1DNiHDvvgRp/view?usp=drive_link", mp4: "https://drive.google.com/file/d/18-mEmG29-8A5RXgMMOMBIGboBVD99Dr_/view?usp=drive_link" },
+    { number: 44, png: "https://drive.google.com/file/d/1AcycJ_KAOn8NbIqgIA8qJ7o9iH3xvNgc/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1iJTBzrsw6wlq1kNIerHSKZ41ITp8jSop/view?usp=drive_link" },
+    { number: 45, png: "https://drive.google.com/file/d/1-TPbFef5jYHHokKT-scfEGpy14-D5UmD/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1no4xq7hWrZk9XOSsQuyGM5h-tivvoskj/view?usp=drive_link" },
+    { number: 46, png: "https://drive.google.com/file/d/1iE-d92mmuAj_W2VABWcy_PZy1IojOTzO/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1CJzbKnBjuM2ZYOVAzS6k68ivtl0msoFS/view?usp=drive_link" },
+    { number: 47, png: "https://drive.google.com/file/d/1FZMPboLO-mwTy1cgthtuBgQRlwngJp56/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Lf0wgNYYrkUmzRv4aGArlldqNloL7V5s/view?usp=drive_link" },
+    { number: 48, png: "https://drive.google.com/file/d/1Cfsf48PVYNRQaiOoUJ9WEjB5vgthFyzB/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1rXzcYXrWZaGvcxhm0psRmSvD_lJehPrs/view?usp=drive_link" },
+    { number: 49, png: "https://drive.google.com/file/d/1VzqZ3QS_iLQvLz-hXLNc1orkV0WVSyRo/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Q2mrNqXn3_QgvwnGrH2q7lt6G8X2orws/view?usp=drive_link" },
+    { number: 50, png: "https://drive.google.com/file/d/11nOUNw5A_2tUqobDueCZ-xI6Rh8Yp-R2/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1APp6a-oWDtSPmcGu8q6bVTQ2XBydWrJQ/view?usp=drive_link" },
+    { number: 51, png: "https://drive.google.com/file/d/1Iq4tC9PZjii-RLLfOPs1zbXtLPLB_APH/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1IU9fYHxWdKpqh76WB5lQ3pkJd3rPLckP/view?usp=drive_link" },
+    { number: 52, png: "https://drive.google.com/file/d/1SpJwMU1lm8tHpqi0YMWefwqlpzfxeO5p/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1otxLUqmOwGbmLfuuTTqHyIsXWxQm5AG8/view?usp=drive_link" },
+    { number: 53, png: "https://drive.google.com/file/d/17hv57wCrKo9Ba49ZY12YuHifc6zmEBaF/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1VkB2yX7SIMxlhXDZ22Ye-bpkptSp3Aml/view?usp=drive_link" },
+    { number: 54, png: "https://drive.google.com/file/d/1s_8OugPlqqe02iIOZiaQx8oU1evnCOVi/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1z9980WfDMGQE1wqHeFWxkYonSokzODYU/view?usp=drive_link" },
+    { number: 55, png: "https://drive.google.com/file/d/1C8JHyFD7_PH8LPWnhNS4FcXIGLCZBfJC/view?usp=drive_link", mp4: "https://drive.google.com/file/d/187KXK6Qzg5j7ZKLtjfEfmPgV5oz_n39C/view?usp=drive_link" },
+    { number: 56, png: "https://drive.google.com/file/d/1I4e3oLYi-1pR8ctFLIUM0mbAEYhZ_nY1/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1CjrZuEw5gt0JF4QwmpTFyw9-NJxifvQH/view?usp=drive_link" },
+    { number: 57, png: "https://drive.google.com/file/d/1k9nCCXn1NdBR-cWu2n1KCwbo6Sv3Nvh7/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1iATT3SCkQgS3rkpXSplAmKrVGX2pNNj8/view?usp=drive_link" },
+    { number: 58, png: "https://drive.google.com/file/d/1zo9cxmyprEiivbLdr69zF1M9NkaBva0b/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1HSNEbe-4ZH_v8NARfd5fc0Je18kcaqLU/view?usp=drive_link" },
+    { number: 59, png: "https://drive.google.com/file/d/1lu8g-Srjk6Q5IUF_Pxnr0Zh8avxeFqWk/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1EhMMfwl9zJnW_yBAwQE1sEKtvrZ0lwxL/view?usp=drive_link" },
+    { number: 60, png: "https://drive.google.com/file/d/1uM1Lp5QKFC3ZsSGYMwWZb8LLlcMqyEXZ/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1t1hw0v1DX0k2MMn5ukP8t4ON7cDzzYkO/view?usp=drive_link" },
+    { number: 61, png: "https://drive.google.com/file/d/1NDWMZ4T7t5yRlRMChASmEZy6iYClmmxu/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1MKEvnrYsFNxmdmAmtXib_3VCm7tFWA4l/view?usp=drive_link" },
+    { number: 62, png: "https://drive.google.com/file/d/1Si_NjjZyHgSAmppCYGlzurbdVrn0KPc5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/10ZD-AqUkNaZ9FXFYV98fMeIUYgB6KLV9/view?usp=drive_link" },
+    { number: 63, png: "https://drive.google.com/file/d/1qRte1ScAMPfg7H0zHhDa-Bnh3O6YQgPo/view?usp=drive_link", mp4: "https://drive.google.com/file/d/14VK20bRiHEnMZoLzEnCFJRi1L3LrVVP_/view?usp=drive_link" },
+    { number: 64, png: "https://drive.google.com/file/d/1wdGRT71bigfDPBOKpeDwL13HKJl0dHtd/view?usp=drive_link", mp4: "https://drive.google.com/file/d/10zzeUap3aSGU-oFtgPN81FqDKqg-6v4t/view?usp=drive_link" },
+    { number: 65, png: "https://drive.google.com/file/d/1cctAoOmqol2s7Oc0kCM4KWu-RgDYKS3P/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1xtQeSt73yK880IdVvDCIbNe5zKAr574O/view?usp=drive_link" },
+    { number: 66, png: "https://drive.google.com/file/d/1rO6TwrbfduoW_yp_eaCm6BIX19pprLM1/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1ZQ2LhYFrZ245yL8kwvXOw8SZmw8lvaHT/view?usp=drive_link" },
+    { number: 67, png: "https://drive.google.com/file/d/1aDCSDeCI0jdow01OJFOSh5EEZNqv7T8V/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1hFoFgt6js2qNZjo1lhtV_SImEEE9q_rw/view?usp=drive_link" },
+    { number: 68, png: "https://drive.google.com/file/d/1Z4rNhlJLHns2_hb-4uURFvw_QHJo1sOA/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1yvLdXYunPeVo2MQoPDlZ6aQI9q76aPhB/view?usp=drive_link" },
+    { number: 69, png: "https://drive.google.com/file/d/1J4iVB0wmizyBcG2hZ9HwdtO4hLb1UPbj/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1WOVRmwRRYB1PY7Gp-I-Su66OODK1x7N1/view?usp=drive_link" },
+    { number: 70, png: "https://drive.google.com/file/d/1FptBlZIPd7phThr_UN9LUDtxjiaDB80b/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1SFTA32LupDVRst5JJUycS9manK1DZYmW/view?usp=drive_link" },
+    { number: 71, png: "https://drive.google.com/file/d/1yRrNmfQVw4GFCup21SNmotdWqTXCnf9F/view?usp=drive_link", mp4: "https://drive.google.com/file/d/10Mi2Q1-0mexR8gQzdG3bVk0WdXrTXD5k/view?usp=drive_link" },
+    { number: 72, png: "https://drive.google.com/file/d/1o-4uWKlfPs7_KxlvLqWGKCoezruA2vuR/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1W3hVizTOknpOPwrwWjBIerOjDIjuTR1m/view?usp=drive_link" },
+    { number: 73, png: "https://drive.google.com/file/d/1sYNT-S6D5qixCGAQzKELPacl-8iLZBOM/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1nx2ZH45F9KN1Ph9j0UTj8eOblp80fkRU/view?usp=drive_link" },
+    { number: 74, png: "https://drive.google.com/file/d/1OkrbHSU6ZjHexaIP2HJ0mU121Xe8kOZ6/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1jyv_8o3ey_nsmteoXgD58sXa0IGQ8B1W/view?usp=drive_link" },
+    { number: 75, png: "https://drive.google.com/file/d/1VycPu9ieRn8bcQf83ab5FFdxaJLsh-O5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1N2txJcboFyugOI7lJvScRg4q4axG_JJ8/view?usp=drive_link" },
+    { number: 76, png: "https://drive.google.com/file/d/15DNBNNNyxWqltw8DOUuK05lrG41TgyzI/view?usp=drive_link", mp4: "https://drive.google.com/file/d/13YoLZtln1kavgOCjK4IcbBOrnuBQ9jwf/view?usp=drive_link" },
+    { number: 77, png: "https://drive.google.com/file/d/1FO9OM61MCHOlDZOIORoiOxQRjL1I7tq_/view?usp=drive_link", mp4: "https://drive.google.com/file/d/12rBLQuSMyiJTfeU0jcaIRCKlhfUpc5u1/view?usp=drive_link" },
+    { number: 78, png: "https://drive.google.com/file/d/13cRIsAzVYpPAmLwnVXdW84aEWN-p4t--/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1ZcJi3dF-FZ-CWbtxWK-1fmgo_K9AeVk1/view?usp=drive_link" },
+    { number: 79, png: "https://drive.google.com/file/d/1FbgD06jh8-royDNIDHYSarOfbsoiQv-5/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1s_qetkjpx_Z9m6yhOEKEKEldPPgNJxiI/view?usp=drive_link" },
+    { number: 80, png: "https://drive.google.com/file/d/1xEYFYq7mkmv2bJrc1dh07B41u39LpB8t/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1MeMW4o9_EVI-fYzHy4m0Ydl901icqFLF/view?usp=drive_link" },
+    { number: 81, png: "https://drive.google.com/file/d/1c64FJ3NcejUVa8FQ2o4_PyTsdkNioth9/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1F0cwhdHvXF-NbVLCRfmf0-qXUV9sViER/view?usp=drive_link" },
+    { number: 82, png: "https://drive.google.com/file/d/10ddfOv-cTw-BaktzOeGnRloMNByVq9Bl/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Xv8C2Hl0MaYpv3oWUPRzSo1fJMlb7mXs/view?usp=drive_link" },
+    { number: 83, png: "https://drive.google.com/file/d/1rrO0eh5ff2onKUZ6meczOKRNQlWBg8FT/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1N9o5kt-tMzd3IkcnSjiiqavlOlbSP5tC/view?usp=drive_link" },
+    { number: 84, png: "https://drive.google.com/file/d/1CnOqGBvrRbzny0CPu2xdGUjjamI0KJE_/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1T1KwUwIA8rakxezg73ps4HAVl4SDuGSE/view?usp=drive_link" },
+    { number: 85, png: "https://drive.google.com/file/d/1zwU-3GGi-FKAYbfLmJhLDN7cmsHBd6KX/view?usp=drive_link", mp4: "https://drive.google.com/file/d/12bA3uM2U-LLCmVY07Ko5WfhatKsIP8h3/view?usp=drive_link" },
+    { number: 86, png: "https://drive.google.com/file/d/1hqrInrub2UME7uBuZ63SvmAkiWueOJ80/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1tk3bL6wW-1qBVHpxg3-o3W8RfB1Gbfyy/view?usp=drive_link" },
+    { number: 87, png: "https://drive.google.com/file/d/12Xji97F30hm4lAQ4UAaox-CSHMyTF44Q/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1fsC0vOvp7E_OwIfjaK-Rlrlybb4MIt7R/view?usp=drive_link" },
+    { number: 88, png: "https://drive.google.com/file/d/12yFwru00zryDdDA1qVZSz12HLxf4MnTR/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Lm4H45ioOv1TVLPo4PHoW4oykx5gGEsq/view?usp=drive_link" },
+    { number: 89, png: "https://drive.google.com/file/d/1T_amzqZX1ndSoREnlHGQaVtNXjx1uyVz/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1hw5qEZQTA21qtvg4eWTt3JHcXFui8fFz/view?usp=drive_link" },
+    { number: 90, png: "https://drive.google.com/file/d/1M7xT4TKaesRaIFuHVOlVA9gqP62cMz4r/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1q7WCNjVIhDKGs2BO10b3nBdRsL9Fduyf/view?usp=drive_link" },
+    { number: 91, png: "https://drive.google.com/file/d/1mYHOsBO1_cUg_BMc5qg2RQEkl4lcRBx-/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1Vm5crhVz9QCCHgQDU9q8niZ1SiIy2vqN/view?usp=drive_link" },
+    { number: 92, png: "https://drive.google.com/file/d/18zrSb2xypnAKZzGqMeSEQ2vcunkameEk/view?usp=drive_link", mp4: "https://drive.google.com/file/d/184hbYaRu3vt4SrjRnxh3MlMp0W5XLD3E/view?usp=drive_link" },
+    { number: 93, png: "https://drive.google.com/file/d/10_oJ79MSOux0v8JMlT8NC4ZbYDJkuXIy/view?usp=drive_link", mp4: "https://drive.google.com/file/d/1tOELid-7-uei_NbL8pyAuf91ZJ3rPPVi/view?usp=drive_link" }
+];
+
+/* TEST BAĞLANTILARI: Test HTML dosyaları GitHub Pages üzerinde
+   index.html ile aynı seviyedeki TST klasöründe bulunmalıdır.
+   Google Drive önizlemesi etkileşimli HTML testlerini çalıştırmaz. */
+const quizLinks = {
+  4: "TST/04.html",
+  5: "TST/05.html",
+  6: "TST/06.html",
+  7: "TST/07.html",
+  8: "TST/08.html",
+  9: "TST/09.html",
+  10: "TST/10.html",
+  11: "TST/11.html",
+  12: "TST/12.html",
+  13: "TST/13.html",
+  14: "TST/14.html",
+  15: "TST/15.html",
+  16: "TST/16.html",
+  17: "TST/17.html",
+  18: "TST/18.html",
+  19: "TST/19.html",
+  20: "TST/20.html",
+  21: "TST/21.html",
+  22: "TST/22.html",
+  23: "TST/23.html",
+  24: "TST/24.html",
+  25: "TST/25.html",
+  26: "TST/26.html",
+  27: "TST/27.html",
+  28: "TST/28.html",
+  29: "TST/29.html",
+  30: "TST/30.html",
+  31: "TST/31.html",
+  32: "TST/32.html",
+  33: "TST/33.html",
+  34: "TST/34.html",
+  35: "TST/35.html",
+  36: "TST/36.html",
+  37: "TST/37.html",
+  38: "TST/38.html",
+  39: "TST/39.html",
+  40: "TST/40.html",
+  41: "TST/41.html",
+  42: "TST/42.html",
+  43: "TST/43.html",
+  44: "TST/44.html",
+  45: "TST/45.html",
+  46: "TST/46.html",
+  47: "TST/47.html",
+  48: "TST/48.html",
+  49: "TST/49.html",
+  50: "TST/50.html",
+  51: "TST/51.html",
+  52: "TST/52.html",
+  53: "TST/53.html",
+  54: "TST/54.html",
+  55: "TST/55.html",
+  56: "TST/56.html",
+  57: "TST/57.html",
+  58: "TST/58.html",
+  59: "TST/59.html",
+  60: "TST/60.html",
+  61: "TST/61.html",
+  62: "TST/62.html",
+  63: "TST/63.html",
+  64: "TST/64.html",
+  65: "TST/65.html",
+  66: "TST/66.html",
+  67: "TST/67.html",
+  68: "TST/68.html",
+  69: "TST/69.html",
+  70: "TST/70.html",
+  71: "TST/71.html",
+  72: "TST/72.html",
+  73: "TST/73.html",
+  74: "TST/74.html",
+  75: "TST/75.html",
+  76: "TST/76.html",
+  77: "TST/77.html",
+  78: "TST/78.html",
+  79: "TST/79.html",
+  80: "TST/80.html",
+  81: "TST/81.html",
+  82: "TST/82.html",
+  83: "TST/83.html",
+  84: "TST/84.html",
+  85: "TST/85.html",
+  86: "TST/86.html",
+  87: "TST/87.html",
+  88: "TST/88.html",
+  89: "TST/89.html",
+  90: "TST/90.html",
+  91: "TST/91.html",
+  92: "TST/92.html"
+};
+const quizDone = new Set();
+let view = 'slide';
+let quizLoadedUrl = '';
+let currentSlide = 0;
+let imageRequest = 0;
+const slideImage = document.getElementById('slideImage');
+const slideFallback = document.getElementById('slideFallback');
+const videoFrame = document.getElementById('videoFrame');
+const imageMissing = document.getElementById('imageMissing');
+const videoMissing = document.getElementById('videoMissing');
+const counter = document.getElementById('counter');
+const prev = document.getElementById('prev');
+const next = document.getElementById('next');
+const quizPanel = document.getElementById('quizPanel');
+const quizFrame = document.getElementById('quizFrame');
+const quizError = document.getElementById('quizError');
+const presentation = document.getElementById('presentation');
+
+function driveId(url) {
+  const match = url.match(/\/file\/d\/([^/?#]+)/) || url.match(/[?&]id=([^&#]+)/);
+  return match ? match[1] : null;
+}
+function previewUrl(id) { return 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview'; }
+function imageUrl(id) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600'; }
+function quizUrl(number) {
+  const raw = quizLinks[number];
+  if (!raw || raw.includes('linkini ekle')) return String(number).padStart(2,'0') + '.html';
+  return raw;
+}
+function showQuiz() {
+  const number = lessons[currentSlide].number;
+  view = 'quiz';
+  videoFrame.src = 'about:blank';
+  presentation.style.display = 'none';
+  quizPanel.style.display = 'block';
+  quizError.style.display = 'none';
+  quizLoadedUrl = new URL(quizUrl(number), location.href).href;
+  quizFrame.src = quizLoadedUrl;
+  counter.textContent = 'Sayfa ' + number + ' — Test';
+  prev.disabled = false;
+  next.disabled = !quizDone.has(number);
+  next.textContent = 'Sonraki Sayfa ▶';
+  window.scrollTo(0,0);
+}
+window.addEventListener('message', function(event) {
+  if (view !== 'quiz' || event.source !== quizFrame.contentWindow) return;
+  let expected;
+  try { expected = new URL(quizLoadedUrl).origin; } catch { return; }
+  if (event.origin !== expected || !event.data || typeof event.data !== 'object') return;
+  const number = lessons[currentSlide].number;
+  if (event.data.page !== number) return;
+  if (event.data.type === 'quiz-completed') {
+    quizDone.add(number); saveProgress(); updateProgress();
+    next.disabled = false;
+  }
+  if (event.data.type === 'quiz-next-request' && quizDone.has(number)) {
+    changeSlide(1);
+  }
+  if (event.data.type === 'quiz-changed') {
+    quizDone.delete(number); saveProgress(); updateProgress();
+    next.disabled = true;
+  }
+  if (event.data.type === 'quiz-height' && Number.isFinite(event.data.height)) {
+    quizFrame.style.height = Math.max(450, Math.min(5000,event.data.height+20)) + 'px';
+  }
+});
+function showSlide() {
+  view = 'slide';
+  quizFrame.src = 'about:blank';
+  quizPanel.style.display = 'none';
+  presentation.style.display = '';
+  next.textContent = 'Sonraki ▶';
+  const lesson = lessons[currentSlide];
+  const request = ++imageRequest;
+  const pngId = driveId(lesson.png);
+  const mp4Id = driveId(lesson.mp4);
+  slideImage.onload = null;
+  slideImage.onerror = null;
+  slideImage.removeAttribute('src');
+  slideFallback.removeAttribute('src');
+  slideFallback.style.display = 'none';
+  imageMissing.style.display = 'none';
+  if (!pngId) {
+    slideImage.style.display = 'none';
+    imageMissing.textContent = lesson.number + ' nolu PNG dosyasının linki henüz eklenmedi.';
+    imageMissing.style.display = 'flex';
+  } else {
+    slideImage.style.display = 'block';
+    slideImage.onload = function () {
+      if (request !== imageRequest) return;
+      slideImage.style.display = 'block';
+      slideFallback.style.display = 'none';
+    };
+    slideImage.onerror = function () {
+      if (request !== imageRequest) return;
+      slideImage.style.display = 'none';
+      slideFallback.style.display = 'block';
+      slideFallback.src = previewUrl(pngId);
+    };
+    slideImage.src = imageUrl(pngId);
+  }
+  videoFrame.src = 'about:blank';
+  videoMissing.style.display = 'none';
+  if (!mp4Id) {
+    videoFrame.style.display = 'none';
+    videoMissing.textContent = lesson.number + ' nolu MP4 dosyasının linki henüz eklenmedi.';
+    videoMissing.style.display = 'flex';
+  } else {
+    videoFrame.style.display = 'block';
+    videoFrame.src = previewUrl(mp4Id);
+  }
+  counter.textContent = 'Sayfa ' + lesson.number + ' / ' + lessons.length;
+  prev.disabled = currentSlide === 0;
+  next.disabled = currentSlide === lessons.length - 1;
+}
+function changeSlide(direction) {
+  if (direction < 0) {
+    if (view === 'quiz') { showSlide(); return; }
+    if (currentSlide === 0) return;
+    const previousNumber = lessons[currentSlide-1].number;
+    currentSlide--;
+    if (previousNumber >= 4 && previousNumber <= 92) showQuiz();
+    else showSlide();
+    return;
+  }
+  if (currentSlide === lessons.length - 1) return;
+  const number = lessons[currentSlide].number;
+  if (view === 'slide' && number >= 4 && number <= 92) {
+    showQuiz();
+    return;
+  }
+  if (view === 'quiz' && !quizDone.has(number)) return;
+  currentSlide++;
+  showSlide();
+}
+
+document.addEventListener('keydown', function (event) {
+  if (event.target.closest('input, textarea, select, button')) return;
+  if (event.key === 'ArrowRight') changeSlide(1);
+  if (event.key === 'ArrowLeft') changeSlide(-1);
+});
+
+const STORAGE_KEY = 'EIA649C_Training_Progress_v1';
+let sessionActive = true, isPaused = false;
+function hasQuiz(n) { return n >= 4 && n <= 92; }
+function updateProgress() { document.getElementById('progressText').textContent = 'Tamamlanan test: ' + quizDone.size + ' / 89'; }
+function saveProgress() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify({version:1,page:currentSlide+1,view,completedQuizzes:[...quizDone],savedAt:Date.now()})); } catch(e) {} }
+function loadProgress() { try { const s=JSON.parse(localStorage.getItem(STORAGE_KEY)); return s && Number.isInteger(s.page) && s.page>=1 && s.page<=93 ? s : null; } catch(e) { return null; } }
+const resumePanel=document.createElement('section');
+resumePanel.hidden=true;
+resumePanel.style.cssText='position:fixed;inset:0;background:#e8edf3;z-index:100;display:none;align-items:center;justify-content:center;padding:20px';
+resumePanel.innerHTML=`<div style="background:white;padding:30px;border-radius:12px;text-align:center;max-width:500px"><h2>Eğitime Devam Et</h2><p id="resumeStage"></p><p><button id="resumeCurrentBtn">Kaldığım yerden devam et</button></p><p><button id="restartBtn">Baştan başla</button></p></div>`;
+document.body.append(resumePanel);
+function openResumeScreen() { isPaused=true; resumePanel.hidden=false;resumePanel.style.display='flex';document.getElementById('resumeStage').textContent='Kayıtlı sayfa: '+(currentSlide+1)+' / 93'; }
+function closeResumeScreen(){isPaused=false;resumePanel.hidden=true;resumePanel.style.display='none';}
+function pauseTraining(){saveProgress(); videoFrame.src='about:blank';openResumeScreen();}
+function resumeCurrent(){closeResumeScreen();if(view==='survey')showEvaluation();else if(view==='quiz')showQuiz();else showSlide();}
+document.getElementById('resumeCurrentBtn').onclick=resumeCurrent;
+document.getElementById('restartBtn').onclick=()=>{if(!confirm('Eğitim ilerlemesi sıfırlansın mı?'))return;quizDone.clear();currentSlide=0;closeResumeScreen();showSlide();};
+function initializeTraining(){const state=loadProgress();if(state){currentSlide=state.page-1;for(const n of (Array.isArray(state.completedQuizzes)?state.completedQuizzes:[]))if(Number.isInteger(n)&&hasQuiz(n))quizDone.add(n);view=state.view==='survey'&&currentSlide===92?'survey':state.view==='quiz'&&hasQuiz(currentSlide+1)?'quiz':'slide';openResumeScreen();}else showSlide();updateProgress();}
+
+/* EIA-649C – Eğitim sonu değerlendirmesi */
+const evaluationPanel = document.createElement('section');
+evaluationPanel.id = 'evaluationPanel';
+evaluationPanel.hidden = true;
+evaluationPanel.innerHTML = `
+<style>
+#evaluationPanel {background:white;max-width:780px;margin:0 auto;padding:clamp(18px,4vw,40px);border-radius:12px;box-shadow:0 3px 14px #0002;text-align:center}
+#evaluationPanel .rating {display:flex;gap:8px;margin:25px 0 12px}
+#evaluationPanel .rating button {flex:1;min-width:0;padding:3px;background:transparent;color:#163653}
+#evaluationPanel .rating img {display:block;width:100%;border-radius:8px;filter:grayscale(1);opacity:.45}
+#evaluationPanel .rating button.active img {filter:none;opacity:1}
+#evaluationPanel .rating button span {display:block;margin-top:8px}
+#evaluationPanel textarea {display:block;width:100%;padding:12px;border:1px solid #b8c8d6;border-radius:8px;font:inherit;margin:10px 0 20px;resize:vertical}
+</style>
+<h2>Eğitim Değerlendirme Anketi</h2>
+<p>Eğitimi tamamladığınız için teşekkür ederiz.</p>
+<form action="https://formsubmit.co/ilhant@gmail.com" method="POST" target="_blank" id="evaluationForm">
+<input type="hidden" name="_subject" value="EIA-649C Eğitim Değerlendirmesi">
+<input type="hidden" name="_next" value="https://ilhantopaloglu.github.io/EIA-649C/">
+<input type="hidden" name="_template" value="table">
+<input type="hidden" name="Puan" id="evaluationScore">
+<p><strong>Eğitimi genel olarak nasıl değerlendirirsiniz?</strong></p>
+<div class="rating" role="group" aria-label="Eğitim puanı"></div>
+<p id="evaluationLabel" aria-live="polite">Puanınızı seçiniz.</p>
+<label for="evaluationComment">Görüş ve önerileriniz (isteğe bağlı)</label>
+<textarea id="evaluationComment" name="Görüş ve öneriler" rows="4" maxlength="4000"></textarea>
+<p style="font-size:12px">Puanınız ve yorumunuz FormSubmit aracılığıyla eğitmene iletilir.</p>
+<button id="evaluationSend" type="submit" disabled>Değerlendirmeyi Gönder</button>
+<p id="evaluationStatus" role="status"></p>
+</form>`;
+quizPanel.after(evaluationPanel);
+let evaluationRating = 0;
+const evaluationLabels = ['', 'Çok yetersiz', 'Yetersiz', 'Orta', 'İyi', 'Çok iyi'];
+const ratingButtons = [];
+for (let i = 1; i <= 5; i++) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-label', i + ' puan: ' + evaluationLabels[i]);
+  b.setAttribute('aria-pressed','false');
+  const ratingImages = ['KON.jpg', 'FI.jpg', 'GU.jpg', 'RAS.jpg', 'YON.jpg'];
+  b.innerHTML = '<img src="' + ratingImages[i-1] + '" alt=""><span>' + i + '</span>';
+  b.onclick = () => {
+    evaluationRating = i;
+    ratingButtons.forEach((x,j) => {
+      x.classList.toggle('active', j < i);
+      x.setAttribute('aria-pressed', String(j === i-1));
+    });
+    document.getElementById('evaluationScore').value = i + ' / 5 — ' + evaluationLabels[i];
+    document.getElementById('evaluationLabel').textContent = i + ' / 5 — ' + evaluationLabels[i];
+    document.getElementById('evaluationSend').disabled = false;
+  };
+  ratingButtons.push(b);
+  evaluationPanel.querySelector('.rating').append(b);
+}
+document.getElementById('evaluationForm').addEventListener('submit', e => {
+  if (!evaluationRating) {e.preventDefault();return;}
+  document.getElementById('evaluationStatus').textContent = 'Gönderimi açılan FormSubmit ekranında tamamlayınız.';
+});
+function showEvaluation() {
+  view = 'survey';
+  ++imageRequest;
+  videoFrame.src = 'about:blank';
+  quizFrame.src = 'about:blank';
+  quizLoadedUrl = '';
+  presentation.style.display = 'none';
+  quizPanel.style.display = 'none';
+  evaluationPanel.hidden = false;
+  counter.textContent = 'Eğitim Değerlendirmesi';
+  prev.disabled = false;
+  next.disabled = true;
+  next.textContent = 'Eğitim Sonu';
+  updateProgress();
+  saveProgress();
+  window.scrollTo(0,0);
+}
+const originalShowSlide = showSlide;
+showSlide = function() {
+  evaluationPanel.hidden = true;
+  originalShowSlide();
+  saveProgress(); updateProgress();
+  if (currentSlide === lessons.length-1) {
+    next.disabled = false;
+    next.textContent = 'Eğitimi Tamamla';
+  }
+};
+const originalShowQuiz = showQuiz;
+showQuiz = function() {evaluationPanel.hidden = true; originalShowQuiz(); saveProgress(); updateProgress();};
+const originalChangeSlide = changeSlide;
+changeSlide = function(direction) {
+  if (isPaused || !sessionActive) return;
+  if (view === 'survey') {if (direction < 0) showSlide();return;}
+  if (direction > 0 && view === 'slide' && currentSlide === lessons.length-1) {
+    if (quizDone.size !== lessons.filter(l => hasQuiz(l.number)).length) {
+      alert('Eğitimi tamamlamak için tüm değerlendirme testlerini tamamlayınız.');return;
+    }
+    showEvaluation();return;
+  }
+  originalChangeSlide(direction);
+};
+
+/* İsteğe bağlı test akışı: eğitim sayfaları doğrudan birbirini izler. */
+const quizButton = document.getElementById('quizButton');
+const pageSelect = document.getElementById('pageSelect');
+for (let n = 1; n <= lessons.length; n++) {
+  const option = document.createElement('option');
+  option.value = String(n);
+  option.textContent = String(n).padStart(2, '0');
+  pageSelect.append(option);
+}
+function goToPage(number) {
+  if (isPaused || !sessionActive || !Number.isInteger(number) || number < 1 || number > lessons.length) return;
+  currentSlide = number - 1;
+  showSlide();
+}
+function updateQuizButton() {
+  pageSelect.value = String(currentSlide + 1);
+  prev.disabled = view !== 'survey' && currentSlide === 0;
+  next.disabled = view === 'survey' || (view === 'quiz' && !quizDone.has(currentSlide + 1));
+  next.textContent = view === 'survey' ? 'Eğitim Sonu' : currentSlide === lessons.length - 1 ? 'Anket ▶' : 'Sonraki ▶';
+  const number = lessons[currentSlide].number;
+  quizButton.style.display = hasQuiz(number) && view !== 'survey' ? '' : 'none';
+  quizButton.textContent = view === 'quiz' ? 'Slayta Dön' : 'Testi Aç';
+}
+function toggleQuiz() {
+  if (isPaused || !sessionActive || !hasQuiz(lessons[currentSlide].number)) return;
+  if (view === 'quiz') showSlide(); else showQuiz();
+}
+const baseShowSlide = showSlide;
+showSlide = function() {
+  baseShowSlide();
+  updateQuizButton();
+};
+const baseShowQuiz = showQuiz;
+showQuiz = function() {
+  baseShowQuiz();
+  next.disabled = !quizDone.has(currentSlide + 1);
+  next.textContent = 'Sonraki ▶';
+  updateQuizButton();
+};
+const baseShowEvaluation = showEvaluation;
+showEvaluation = function() {
+  baseShowEvaluation();
+  updateQuizButton();
+};
+changeSlide = function(direction) {
+  if (isPaused || !sessionActive) return;
+  if (view === 'survey') {
+    if (direction < 0) showSlide();
+    return;
+  }
+  if (direction > 0 && view === 'quiz' && !quizDone.has(currentSlide + 1)) return;
+  if (direction > 0 && currentSlide === lessons.length - 1) {
+    showEvaluation();
+    return;
+  }
+  const target = currentSlide + direction;
+  if (target < 0 || target >= lessons.length) return;
+  currentSlide = target;
+  showSlide();
+};
+initializeTraining();
+updateQuizButton();
+</script>
+</body>
+</html>
