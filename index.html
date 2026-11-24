@@ -40,6 +40,8 @@ button:disabled { opacity: 0.4; cursor: default; }
  .presentation { width: min(100%, 128vh); width: min(100%, 128dvh); margin: 0 auto; aspect-ratio: 16/9; }
  .slide-image { object-fit: contain; }
  .video-frame, #videoMissing { width: 22.939453125%; height: 72.5%; aspect-ratio: 9/16; }
+ /* Drive oynaticisini daha genis bir ic alanda olustur ve orantili kucult. */
+ .video-frame { width: 540px; height: 960px; transform: scale(var(--player-scale, 0.15)); transform-origin: top left; }
  .controls { padding: 6px 5px; gap: 6px; }
 }
 </style>
@@ -307,6 +309,17 @@ const quizPanel = document.getElementById('quizPanel');
 const quizFrame = document.getElementById('quizFrame');
 const quizError = document.getElementById('quizError');
 const presentation = document.getElementById('presentation');
+
+// Yatay ekranda Drive oynaticisinin sanal boyutunu sabit tut,
+// gorunen boyutunu sunumun video alanina gore hesapla.
+function fitLandscapePlayer() {
+  const h = presentation.clientHeight;
+  if (h > 0) presentation.style.setProperty('--player-scale', String(h * 0.725 / 960));
+}
+if ('ResizeObserver' in window) new ResizeObserver(fitLandscapePlayer).observe(presentation);
+window.addEventListener('resize', fitLandscapePlayer);
+fitLandscapePlayer();
+
 
 function driveId(url) {
   const match = url.match(/\/file\/d\/([^/?#]+)/) || url.match(/[?&]id=([^&#]+)/);
