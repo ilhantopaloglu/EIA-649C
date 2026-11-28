@@ -60,6 +60,9 @@ button:disabled { opacity: 0.4; cursor: default; }
     <iframe id="quizFrame" title="Bilgi değerlendirme testi" style="width:100%;min-height:650px;border:0" scrolling="auto"></iframe>
     <div id="quizError" style="display:none;padding:16px;color:#a22"></div>
   </section>
+  <div id="extraReading" hidden style="text-align:center;padding:10px 5px 0;font-size:14px">
+    <a href="https://lnkd.in/p/dP32cdAp" target="_blank" rel="noopener noreferrer" style="color:#123858;font-weight:bold">İlave Okuma: Konfigürasyon Birimi (KB) Nedir?</a>
+  </div>
   <nav class="controls">
     <button id="prev" onclick="changeSlide(-1)">◀ Önceki</button>
     <label for="pageSelect" style="font-size:14px">Sayfa:</label>
@@ -579,6 +582,7 @@ function goToPage(number) {
   showSlide();
 }
 function updateQuizButton() {
+  document.getElementById('extraReading').hidden = !(view === 'slide' && lessons[currentSlide].number === 48);
   pageSelect.value = String(currentSlide + 1);
   prev.disabled = view !== 'survey' && currentSlide === 0;
   next.disabled = view === 'survey' || (view === 'quiz' && !quizDone.has(currentSlide + 1));
